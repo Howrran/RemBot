@@ -137,3 +137,4 @@ config.py
 credentials.json
 token.json
 token.pickle
+database.db
