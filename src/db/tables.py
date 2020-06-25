@@ -26,6 +26,7 @@ def init_database(cursor):
         user_id integer,
         word_id integer,
         status integer
+        UNIQUE (user_id, word_id)
         )
                    ''')
 
