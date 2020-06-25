@@ -7,7 +7,7 @@ from sqlite3 import (
     IntegrityError,
     ProgrammingError
 )
-from config import DATABASE
+from config import DATABASE #pylint: disable=no-name-in-module
 from src.utils.errors import CustomException
 
 

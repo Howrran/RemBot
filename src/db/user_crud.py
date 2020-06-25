@@ -106,6 +106,8 @@ class UserCRUD():
         :param interval: int
         :return: tuple
         """
+        if username is None and interval is None:
+            raise UserNotExist()
 
         user = UserCRUD.get_user_by_id(user_id=user_id)  # pylint: disable=no-value-for-parameter
 
