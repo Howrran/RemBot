@@ -92,11 +92,10 @@ class DocManager():
 
         # Retrieve the documents contents from the Docs service.
 
-        document = service.documents().get(
+        document = service.documents().get( #pylint: disable= no-member
             documentId=document_id) \
-            .execute()  # pylint: disable= no-member
+            .execute()
 
-        # print('The title of the document is: {}'.format(document.get('title')))
         doc_content = document.get('body').get('content')
         text = DocManager.read_strucutural_elements(doc_content)
 

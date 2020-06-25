@@ -1,16 +1,23 @@
-import sqlite3
-from config import DATABASE
-from src.utils.decorators import database_decorator
+"""Create database"""
 
-@database_decorator
+from src.utils.decorators import database_update_decorator
+
+
+@database_update_decorator
 def init_database(cursor):
+    """
+    Create database`s tables
 
+    :param cursor: used in decorator
+    :return: True or None
+    """
     cursor.execute('''
         CREATE TABLE users
         (id integer PRIMARY KEY AUTOINCREMENT,
         username text,
-        telegram_id integer UNIQUE
-        )
+        telegram_id integer UNIQUE,
+        interval integer DEFAULT 5
+        ),
                    ''')
 
     cursor.execute('''
@@ -34,4 +41,5 @@ def init_database(cursor):
 
     return True
 
-init_database()
+
+init_database() #pylint: disable=no-value-for-parameter

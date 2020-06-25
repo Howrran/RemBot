@@ -1,18 +1,23 @@
+"""Project decorators"""
 import functools
 import sqlite3
 
-from config import DATABASE
 from sqlite3 import (
     OperationalError,
-    IntegrityError
+    IntegrityError,
+    ProgrammingError
 )
+from config import DATABASE
+from src.utils.errors import CustomException
 
-def database_decorator(func):
+
+def database_update_decorator(func):
     """
     Connection decorator
     :param func: function to decorate
     :return: function wrapper
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         """
@@ -29,7 +34,7 @@ def database_decorator(func):
 
             return result
 
-        except (OperationalError, IntegrityError) as err:
+        except (OperationalError, IntegrityError, ProgrammingError, CustomException) as err:
             print(err)
             return None
 
