@@ -117,8 +117,8 @@ class WordCRUD():
                 and translation is None and example_phrase is None:
             return None
 
-        old_word = WordCRUD.get_word_by_id(
-            word_id=word_id)  # pylint: disable=no-value-for-parameter
+        old_word = WordCRUD.get_word_by_id( #pylint: disable=no-value-for-parameter
+            word_id=word_id)
 
         if old_word is None:
             raise NotExist()
@@ -135,7 +135,7 @@ class WordCRUD():
         cursor.execute(sql,
                        (word, transcription, translation, example_phrase, word_id)
                        )
-        new_word = WordCRUD.get_word_by_id(
-            word_id=word_id)  # pylint: disable=no-value-for-parameter
+        new_word = WordCRUD.get_word_by_id( #pylint: disable=no-value-for-parameter
+            word_id=word_id)
 
         return new_word
