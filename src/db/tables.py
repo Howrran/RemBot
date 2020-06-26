@@ -27,6 +27,13 @@ def init_database(cursor):
         word_id integer,
         status integer,
         UNIQUE (user_id, word_id)
+        CONSTRAINT fk_user
+            FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            
+        CONSTRAINT fk_word
+            FOREIGN KEY (word_id)
+            REFERENCES words(id)
         )
                    ''')
 
