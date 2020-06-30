@@ -36,20 +36,28 @@ class RussianTranslation(Translation):
     URL = 'https://dictionary.cambridge.org/dictionary/english-russian/'
 
     @staticmethod
+    def get_translation(soup):
+        translation = soup.find(class_='trans').contents[0] # get translation from the html and get it from the list
+        translation = translation.strip('\n ') # get rid of new line and spaces
+        return translation
+
+    @staticmethod
     def translate(word):
         text = requests.get(RussianTranslation.URL + word).content
 
-        # print(requests.get(RussianTranslation.URL).status_code)
-
         soup = BeautifulSoup(text, 'html.parser')
 
-        print(soup.find(property='og:url').get('content'))
+        if soup.find(property='og:url').get('content').split('/')[-1] == '':
+            return None
+
+        translation = RussianTranslation.get_translation(soup)
+
         pron = soup.find(class_='pron').find(class_='ipa').contents
         pron = RussianTranslation.get_pron(pron)
         return pron
 
 
-RussianTranslation.translate('grocery')
+print(RussianTranslation.translate('grocery'))
 
 content = DocManager.get_doc_content()
 words = []
@@ -57,6 +65,5 @@ words = []
 for i in content.split('\n'):
     words.append(i.split('-')[0].strip())
 #
-# for word in words:
-#     print(word, RussianTranslation.translate(word))
-#
+for word in words:
+    print(word, RussianTranslation.translate(word))
