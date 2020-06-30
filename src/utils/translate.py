@@ -24,7 +24,8 @@ class Translation():
             if isinstance(i, Tag):
                 text += RussianTranslation.get_pron(i.contents)
             else:
-                text += i.strip(".,ˈˌ ")
+                text += i.strip(".,ˈˌ")
+                # text += i
         return text.replace('.', '')
 
     @staticmethod
@@ -42,6 +43,13 @@ class RussianTranslation(Translation):
         return translation
 
     @staticmethod
+    def get_phrase(soup):
+        phrase = soup.select('div.def.ddef_d')[0]
+        phrase = RussianTranslation.get_pron(phrase.contents)
+
+        return phrase
+
+    @staticmethod
     def translate(word):
         text = requests.get(RussianTranslation.URL + word).content
 
@@ -51,10 +59,12 @@ class RussianTranslation(Translation):
             return None
 
         translation = RussianTranslation.get_translation(soup)
+        phrase = RussianTranslation.get_phrase(soup)
 
         pron = soup.find(class_='pron').find(class_='ipa').contents
         pron = RussianTranslation.get_pron(pron)
-        return pron
+        print(word, pron, translation, phrase)
+        # return pron
 
 
 print(RussianTranslation.translate('grocery'))
@@ -66,4 +76,5 @@ for i in content.split('\n'):
     words.append(i.split('-')[0].strip())
 #
 for word in words:
-    print(word, RussianTranslation.translate(word))
+    # print(word, RussianTranslation.translate(word))
+    RussianTranslation.translate(word)
