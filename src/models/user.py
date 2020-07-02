@@ -1,8 +1,19 @@
-from src.db.db_config import BASE_MODEL, DB
-from sqlalchemy import Column, Integer, String
+"""
+User model
+"""
+from sqlalchemy import (
+    Column,
+    Integer,
+    String
+)
+
+from config import DB
 
 
-class User(BASE_MODEL):
+class User(DB.BASE_MODEL):
+    """
+    User model
+    """
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
@@ -13,5 +24,3 @@ class User(BASE_MODEL):
     def __repr__(self):
         return f"<User(id='{self.id}',username='{self.username}', " \
                f"telegram_id='{self.telegram_id}', interval='{self.interval}')>"
-
-
