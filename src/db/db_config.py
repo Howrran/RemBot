@@ -16,9 +16,11 @@ SQLALCHEMY_DATABASE_URI = f"postgresql://{DATABASE['POSTGRES_USER']}:" \
                           f"{DATABASE['POSTGRES_PASSWORD']}@" \
                           f"{DATABASE['HOST']}:{DATABASE['PORT']}/{DATABASE['DB_NAME']}"
 
-ENGINE = create_engine(SQLALCHEMY_DATABASE_URI, echo=True)  # TODO change to false
-SESSION = sessionmaker(bind=ENGINE)
-session = SESSION()
-
 BASE = declarative_base()
+
+
+class DB:
+    ENGINE = create_engine(SQLALCHEMY_DATABASE_URI, echo=True)  # TODO change to false
+    SESSION = sessionmaker(bind=ENGINE)
+    session = SESSION()
 
