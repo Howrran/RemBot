@@ -7,10 +7,10 @@ from sqlalchemy import (
     String
 )
 
-from config import DB
+from config import DB # pylint: disable= no-name-in-module
 
 
-class User(DB.BASE_MODEL):
+class User(DB.BASE_MODEL):  # pylint: disable= too-few-public-methods
     """
     User model
     """

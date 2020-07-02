@@ -3,7 +3,7 @@ Bot realisation
 """
 
 from uuid import uuid4
-from config import BOT_TOKEN
+from config import BOT_TOKEN # pylint: disable= no-name-in-module
 from telegram.ext import Updater, CommandHandler # pylint: disable= import-error
 from doc_manager import DocManager # pylint: disable= import-error
 
