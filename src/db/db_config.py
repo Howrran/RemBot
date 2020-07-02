@@ -16,7 +16,7 @@ SQLALCHEMY_DATABASE_URI = f"postgresql://{DATABASE['POSTGRES_USER']}:" \
                           f"{DATABASE['POSTGRES_PASSWORD']}@" \
                           f"{DATABASE['HOST']}:{DATABASE['PORT']}/{DATABASE['DB_NAME']}"
 
-BASE = declarative_base()
+BASE_MODEL = declarative_base()
 
 
 class DB:
