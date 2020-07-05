@@ -1,9 +1,15 @@
+"""
+UserWord Model
+"""
 from sqlalchemy import Column, Integer, UniqueConstraint, ForeignKey
 
 from config import DB
 
 
 class UserWord(DB.BASE_MODEL):
+    """
+    UserWord Model
+    """
     __tablename__ = "user_words"
     __table_args__ = (UniqueConstraint('user_id', 'word_id', name='user_word'),)
 

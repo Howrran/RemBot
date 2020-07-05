@@ -27,4 +27,3 @@ class User(DB.BASE_MODEL):  # pylint: disable= too-few-public-methods
     def __repr__(self):
         return f"<User(id='{self.id}',username='{self.username}', " \
                f"telegram_id='{self.telegram_id}', interval='{self.interval}')>"
-
