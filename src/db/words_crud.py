@@ -16,6 +16,7 @@ class WordCRUD():
     TRANSCRIPTION = 2
     TRANSLATION = 3
     EXAMPLE_PHRASE = 4
+    LINK = 5
 
     @staticmethod
     @database_update_decorator
@@ -35,7 +36,7 @@ class WordCRUD():
 
     @staticmethod
     @database_update_decorator
-    def add_word(cursor, word, transcription, translation, example_phrase):
+    def add_word(cursor, word, transcription, translation, example_phrase, link): # pylint: disable=too-many-arguments
         """
         Add new word to the database
 
@@ -44,13 +45,14 @@ class WordCRUD():
         :param transcription: str
         :param translation: str
         :param example_phrase: str
+        :param link: str
         :return:
         """
         sql = '''INSERT INTO words
-                 (word,transcription, translation, example_phrase)
-                 VALUES (?,?,?,?)'''
+                 (word, transcription, translation, example_phrase, link)
+                 VALUES (?,?,?,?,?)'''
 
-        cursor.execute(sql, (word, transcription, translation, example_phrase))
+        cursor.execute(sql, (word, transcription, translation, example_phrase, link))
 
         return True
 
@@ -72,7 +74,13 @@ class WordCRUD():
 
     @staticmethod
     @database_update_decorator
-    def word_filter(cursor, word=None, transcription=None, translation=None, example_phrase=None):
+    def word_filter( # pylint: disable=too-many-arguments
+            cursor,
+            word=None,
+            transcription=None,
+            translation=None,
+            example_phrase=None,
+            link=None):
         """
         Get words from the database by parameters
 
@@ -81,27 +89,30 @@ class WordCRUD():
         :param transcription: str
         :param translation: str
         :param example_phrase: str
+        :param link: str
         :return: list
         """
 
         sql = '''SELECT * from words
-                 where word=? and (transcription=? or translation=? or example_phrase=?)'''
+                 where word=? and
+                 (transcription=? or translation=? or example_phrase=? or link=?)'''
 
         output = cursor.execute(sql,
-                                (word, transcription, translation, example_phrase)
+                                (word, transcription, translation, example_phrase, link)
                                 ).fetchall()
 
         return output
 
     @staticmethod
     @database_update_decorator
-    def update_word(  # pylint: disable=too-many-arguments
+    def update_word(  #pylint: disable=too-many-arguments
             cursor,
             word_id,
             word=None,
             transcription=None,
             translation=None,
-            example_phrase=None):
+            example_phrase=None,
+            link=None):
         """
         Update word`s information in database
 
@@ -111,10 +122,11 @@ class WordCRUD():
         :param transcription: str
         :param translation: str
         :param example_phrase: str
+        :param link: str
         :return:
         """
         if word is None and transcription is None \
-                and translation is None and example_phrase is None:
+                and translation is None and example_phrase is None and link is None:
             return None
 
         old_word = WordCRUD.get_word_by_id( #pylint: disable=no-value-for-parameter
@@ -127,13 +139,14 @@ class WordCRUD():
         transcription = transcription if transcription else old_word[WordCRUD.TRANSCRIPTION]
         translation = translation if translation else old_word[WordCRUD.TRANSLATION]
         example_phrase = example_phrase if example_phrase else old_word[WordCRUD.EXAMPLE_PHRASE]
+        link = link if link else old_word[WordCRUD.LINK]
 
         sql = '''UPDATE words
-                 set word = ?, transcription = ?, translation = ?, example_phrase = ?
+                 set word = ?, transcription = ?, translation = ?, example_phrase = ?, link = ?
                  where id = ?
                 '''
         cursor.execute(sql,
-                       (word, transcription, translation, example_phrase, word_id)
+                       (word, transcription, translation, example_phrase, link, word_id)
                        )
         new_word = WordCRUD.get_word_by_id( #pylint: disable=no-value-for-parameter
             word_id=word_id)

@@ -17,7 +17,7 @@ def init_database(cursor):
         username text,
         telegram_id integer UNIQUE,
         interval integer DEFAULT 5
-        ),
+        )
                    ''')
 
     cursor.execute('''
@@ -25,8 +25,15 @@ def init_database(cursor):
         (id integer PRIMARY KEY AUTOINCREMENT,
         user_id integer,
         word_id integer,
-        status integer
+        status integer,
         UNIQUE (user_id, word_id)
+        CONSTRAINT fk_user
+            FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            
+        CONSTRAINT fk_word
+            FOREIGN KEY (word_id)
+            REFERENCES words(id)
         )
                    ''')
 
@@ -36,7 +43,8 @@ def init_database(cursor):
         word text UNIQUE,
         transcription text,
         translation text,
-        example_phrase text
+        example_phrase text,
+        link text
         )
                    ''')
 
