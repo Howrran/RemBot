@@ -3,7 +3,7 @@ UserWord Model
 """
 from sqlalchemy import Column, Integer, UniqueConstraint, ForeignKey
 
-from config import DB  # pylint: disable= no-name-in-module
+from src.config import DB  # pylint: disable= no-name-in-module
 
 
 class UserWord(DB.BASE_MODEL):
