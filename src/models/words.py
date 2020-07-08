@@ -4,7 +4,7 @@ Word Model
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 
-from config import DB  # pylint: disable= no-name-in-module
+from src.config import DB  # pylint: disable= no-name-in-module
 
 
 class Word(DB.BASE_MODEL):

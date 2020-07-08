@@ -8,7 +8,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from config import DB  # pylint: disable= no-name-in-module
+from src.config import DB  # pylint: disable= no-name-in-module
 
 
 class User(DB.BASE_MODEL):  # pylint: disable= too-few-public-methods
