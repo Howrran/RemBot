@@ -1,5 +1,6 @@
-import os
-
+"""
+Project configuration
+"""
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -12,8 +13,11 @@ SQLALCHEMY_DATABASE_URI = f"postgresql://{DATABASE['POSTGRES_USER']}:" \
                           f"{DATABASE['HOST']}:{DATABASE['PORT']}/{DATABASE['DB_NAME']}"
 
 
-class DB:
-    ENGINE = create_engine(SQLALCHEMY_DATABASE_URI, echo=False)  # TODO change to false
+class DB: #pylint: disable=too-few-public-methods
+    """
+    DataBase connection
+    """
+    ENGINE = create_engine(SQLALCHEMY_DATABASE_URI, echo=False)
     SESSION = sessionmaker(bind=ENGINE, autocommit=True)
     BASE_MODEL = declarative_base()
     session = SESSION()
