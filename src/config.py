@@ -4,7 +4,7 @@ Project configuration
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from .local_settings import DATABASE #pylint: disable=import-error
+from src.local_settings  import DATABASE #pylint: disable=import-error
 
 DEFAULT_INTERVAL = 5
 
