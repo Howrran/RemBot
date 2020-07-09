@@ -16,8 +16,8 @@ class Word(DB.BASE_MODEL):
     id = Column(Integer, primary_key=True)
     word = Column(String)
     transcription = Column(String)
-    ukr_translation = Column(String)
-    rus_translation = Column(String)
+    ukr_translation = Column(String, nullable=True)
+    rus_translation = Column(String, nullable=True)
     example_phrase = Column(String)
     link = Column(String)
 
