@@ -2,7 +2,7 @@
 User CRUD operations in DB
 """
 from src.models import User
-from src.config import DB
+from src.config import DB, DEFAULT_INTERVAL
 from src.utils.decorators import transaction_decorator
 from src.utils.errors import NotExist
 
@@ -14,7 +14,7 @@ class UserService():
 
     @staticmethod
     @transaction_decorator
-    def create(username, telegram_id, interval):
+    def create(username, telegram_id, interval=DEFAULT_INTERVAL):
         """
         Create new user or return user object if already exists
 
@@ -57,11 +57,14 @@ class UserService():
         """
         user = UserService.get_by_id(user_id)
 
-        if username:
+        if user is None:
+            raise NotExist()
+
+        if username is not None:
             user.username = username
-        if telegram_id:
+        if telegram_id is not None:
             user.telegram_id = telegram_id
-        if interval:
+        if interval is not None:
             user.interval = interval
 
         DB.session.merge(user)
@@ -97,11 +100,11 @@ class UserService():
         """
         data = {}
 
-        if username:
+        if username is not None:
             data['username'] = username
-        if telegram_id:
+        if telegram_id is not None:
             data['telegram_id'] = telegram_id
-        if interval:
+        if interval is not None:
             data['interval'] = interval
 
         users = DB.session.query(User).filter_by(**data).all()
