@@ -83,17 +83,20 @@ class WordService():
         """
         word_object = WordService.get_by_id(word_id)
 
-        if word:
+        if word_object is None:
+            raise NotExist()
+
+        if word is not None:
             word_object.word = word
-        if transcription:
+        if transcription is not None:
             word_object.transcription = transcription
-        if example_phrase:
+        if example_phrase is not None:
             word_object.example_phrase = example_phrase
-        if link:
+        if link is not None:
             word_object.link = link
-        if ukr_translation:
+        if ukr_translation is not None:
             word_object.ukr_translation = ukr_translation
-        if rus_translation:
+        if rus_translation is not None:
             word_object.rus_translation = rus_translation
 
         DB.session.merge(word_object)
@@ -139,17 +142,17 @@ class WordService():
         """
         data = {}
 
-        if word:
+        if word is not None:
             data['word'] = word
-        if transcription:
+        if transcription is not None:
             data['transcription'] = transcription
-        if example_phrase:
+        if example_phrase is not None:
             data['example_phrase'] = example_phrase
-        if link:
+        if link is not None:
             data['link'] = link
-        if ukr_translation:
+        if ukr_translation is not None:
             data['ukr_translation'] = ukr_translation
-        if rus_translation:
+        if rus_translation is not None:
             data['rus_translation'] = rus_translation
 
         words = DB.session.query(Word).filter_by(**data).all()

@@ -7,7 +7,7 @@ from sqlalchemy import pool
 
 # sys.path used because env can't access config.py
 sys.path = ['', '..'] + sys.path[1:]
-from config import DB, SQLALCHEMY_DATABASE_URI
+from src.config import DB, SQLALCHEMY_DATABASE_URI
 from src.models import *
 
 # this is the Alembic Config object, which provides
