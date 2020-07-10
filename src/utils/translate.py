@@ -1,80 +1,118 @@
 """
 Module for translating words
 """
-
 import requests
 
 from bs4 import BeautifulSoup, Tag
-from src.doc_manager import DocManager
 
 
 class Translation():
+    """
+    Basic class for translation
+    """
     URL = None
 
     @staticmethod
-    def get_pron(pron):
+    def get_text_from_tags(string):
         """
-        extract pronunciation from html
+        extract text from html
 
-        :param pron: list of bs4.element.NavigableString and Tag
+        :param text: list of bs4.element.NavigableString and Tag or string with tags
         :return: str
         """
         text = ''
-        for i in pron:
+        for i in string:
             if isinstance(i, Tag):
-                text += RussianTranslation.get_pron(i.contents)
+                text += RussianTranslation.get_text_from_tags(i.contents)
             else:
                 text += i.strip(".,ˈˌ")
-                # text += i
         return text.replace('.', '')
 
     @staticmethod
-    def translate(word):
-        pass
+    def get_transcription(soup):
+        """
+        Get transcription of the word from html
+
+        :param soup: BeautifulSoup
+        :return: str
+        """
+        transcription = soup.find(class_='pron').find(class_='ipa').contents
+        transcription = RussianTranslation.get_text_from_tags(transcription)
+
+        return transcription
+
+    @staticmethod
+    def get_explanation(soup):
+        """
+        Get explanation of the word from html
+
+        :param soup: BeautifulSoup
+        :return: str
+        """
+        explanation = soup.select('div.def.ddef_d')[0]
+        explanation = RussianTranslation.get_text_from_tags(explanation.contents)
+
+        return explanation
 
 
 class RussianTranslation(Translation):
+    """
+    Translation into Russian by Cambridge dictionary
+    """
     URL = 'https://dictionary.cambridge.org/dictionary/english-russian/'
 
     @staticmethod
     def get_translation(soup):
-        translation = soup.find(class_='trans').contents[0] # get translation from the html and get it from the list
-        translation = translation.strip('\n ') # get rid of new line and spaces
+        """
+        Get Russian translation of the word from html
+
+        :param soup: BeautifulSoup
+        :return: str
+        """
+        # get translation from the html and get rid of new line and spaces
+        translation = soup.find(class_='trans').contents[0].strip('\n ')
         return translation
 
     @staticmethod
-    def get_phrase(soup):
-        phrase = soup.select('div.def.ddef_d')[0]
-        phrase = RussianTranslation.get_pron(phrase.contents)
+    def is_exist(soup):
+        """
+        Check if page for that word exist
 
-        return phrase
+        :param soup:
+        :return:
+        """
+        exist = True
+        if soup.find(property='og:url').get('content').split('/')[-1] == '':  # no such word on site
+            exist = False
+
+        return exist
 
     @staticmethod
     def translate(word):
-        text = requests.get(RussianTranslation.URL + word).content
+        """
+        Return words: translation, transcription, explanation and link to the cambridge site
 
-        soup = BeautifulSoup(text, 'html.parser')
+        :param word: str | word to translate
+        :return: dict or None
+        """
+        link = RussianTranslation.URL + word
+        content = requests.get(link).content
 
-        if soup.find(property='og:url').get('content').split('/')[-1] == '':
+        soup = BeautifulSoup(content, 'html.parser')
+
+        if not RussianTranslation.is_exist(soup):
             return None
 
         translation = RussianTranslation.get_translation(soup)
-        phrase = RussianTranslation.get_phrase(soup)
+        explanation = RussianTranslation.get_explanation(soup)
+        transcription = RussianTranslation.get_transcription(soup)
 
-        pron = soup.find(class_='pron').find(class_='ipa').contents
-        pron = RussianTranslation.get_pron(pron)
-        print(word, pron, translation, phrase)
-        # return pron
+        data = {
+            'word': word,
+            'transcription': transcription,
+            'rus_translation': translation,
+            'explanation': explanation,
+            'link': link
+        }
 
-
-print(RussianTranslation.translate('grocery'))
-
-content = DocManager.get_doc_content()
-words = []
-
-for i in content.split('\n'):
-    words.append(i.split('-')[0].strip())
-#
-for word in words:
-    # print(word, RussianTranslation.translate(word))
-    RussianTranslation.translate(word)
+        return data
