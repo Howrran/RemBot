@@ -18,7 +18,7 @@ class Word(DB.BASE_MODEL):
     transcription = Column(String)
     ukr_translation = Column(String, nullable=True)
     rus_translation = Column(String, nullable=True)
-    example_phrase = Column(String)
+    explanation = Column(String)
     link = Column(String)
 
     user_word = relationship("UserWord", backref='word')
@@ -28,5 +28,5 @@ class Word(DB.BASE_MODEL):
                f"transcription='{self.transcription}'," \
                f" ukr_translation='{self.ukr_translation}', " \
                f"rus_translation='{self.rus_translation}'," \
-               f" example_phrase='{self.example_phrase}', " \
+               f" explanation='{self.explanation}', " \
                f"link='{self.link}')>"
