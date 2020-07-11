@@ -3,6 +3,7 @@ User CRUD operations in DB
 """
 from src.models import UserWord
 from src.config import DB
+from src.services.user import UserService
 from src.utils.decorators import transaction_decorator
 from src.utils.errors import NotExist
 
@@ -109,3 +110,28 @@ class UserWordService():
 
         user_words = DB.session.query(UserWord).filter_by(**data).all()
         return user_words
+
+    @staticmethod
+    def add_user_word(user_telegram_id, word):
+        """
+        add word to user word list
+
+        :param user_telegram_id:
+        :param word:
+        :return:
+        """
+
+        user = UserService.filter(telegram_id=user_telegram_id)
+
+        if not user: # if no such word
+            return None
+
+        user = user[0]
+
+        # if user already has this word
+        if user_word := UserWordService.filter(user_id=user.id, word_id=word.id):
+            return user_word[0]
+
+        user_word = UserWordService.create(user.id, word.id)
+
+        return user_word

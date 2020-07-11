@@ -100,3 +100,44 @@ class DocManager():
         text = DocManager.read_strucutural_elements(doc_content)
 
         return text
+
+    @staticmethod
+    def parse_line(line):
+        """
+        parse line and return dict word - translation(or None if absent)
+
+        :param line: str
+        :return: dict
+        """
+        data = {}
+        line = line.split('-')
+
+        if len(line) > 1:
+            translation = line[-1].strip()
+            word = ''.join(line[:-1]).strip()
+            data[word] = translation
+
+        else:
+            if word := line[0]:
+                data[word] = None
+
+        return data
+
+
+    @staticmethod
+    def get_words_in_dictionary(document_id=None):
+        """
+        Get content from google document and return a dict{word : translation}
+
+        :param document_id: str
+        :return: dict
+        """
+        document_id = document_id if document_id else DocManager.DOCUMENT_ID
+
+        content = DocManager.get_doc_content(document_id)
+        dictionary = {}
+
+        for line in content.split('\n'):
+            dictionary.update(DocManager.parse_line(line)) # update dict {word : translation}
+
+        return dictionary
