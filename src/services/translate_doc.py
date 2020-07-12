@@ -28,7 +28,6 @@ class NewWordsService:
             return None
 
         words = DocManager.get_words_in_dictionary(document_id)  # dict of words
-
         word_status = {}  # if translator found that word or not
 
         for word, translation in words.items():
