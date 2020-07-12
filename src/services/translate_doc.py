@@ -1,8 +1,6 @@
 """
 Translating and adding words to the database from google docs
 """
-import time
-
 from urllib.parse import urlparse
 from src.services.user_word import UserWordService
 from src.services.words import WordService
@@ -11,6 +9,9 @@ from src.utils.translate import RussianTranslation
 
 
 class NewWordsService:
+    """
+    Add user words
+    """
 
     @staticmethod
     def add_user_words_from_doc_russian(user_telegram_id, url):
@@ -21,26 +22,14 @@ class NewWordsService:
         :param url: str | link to google document
         :return: dict | word_status | or None
         """
-        start = time.time()
-
         document_id = NewWordsService.get_doc_id_from_url(url)
 
         if document_id is None:
             return None
 
-        finish1 = time.time() - start
-        print(f'get doc id = {finish1}')
-
-        start2 = time.time()
-
         words = DocManager.get_words_in_dictionary(document_id)  # dict of words
 
-        finish2 = time.time() - start2
-        print(f'words in dictionary = {finish2}')
-
         word_status = {}  # if translator found that word or not
-
-        start3 = time.time()
 
         for word, translation in words.items():
 
@@ -51,12 +40,7 @@ class NewWordsService:
                 UserWordService.add_user_word(user_telegram_id=user_telegram_id, word=new_word[0])
                 continue
 
-            start4 = time.time()
-
-            word_info = RussianTranslation.translate(word)
-
-            finish4 = time.time() - start4
-            print(f'translate = {finish4}')
+            word_info = RussianTranslation.get_word_info(word)
 
             if not word_info:  # if could not translate
                 word_status[word] = False
@@ -68,12 +52,6 @@ class NewWordsService:
 
             new_word = WordService.create(**word_info)
             UserWordService.add_user_word(user_telegram_id=user_telegram_id, word=new_word)
-
-        finish3 = time.time() - start3
-        print(f'cycle = {finish3}')
-
-        finish = time.time() - start
-        print(f'total = {finish}')
 
         return word_status
 

@@ -88,7 +88,7 @@ class RussianTranslation(Translation):
         return exist
 
     @staticmethod
-    def translate(word):
+    def get_word_info(word):
         """
         Return words: translation, transcription, explanation and link to the cambridge site
 
