@@ -17,7 +17,7 @@ class WordService():
     def create( # pylint: disable=too-many-arguments
             word,
             transcription,
-            example_phrase,
+            explanation,
             link,
             ukr_translation=None,
             rus_translation=None):
@@ -26,7 +26,7 @@ class WordService():
 
         :param word: str
         :param transcription: str
-        :param example_phrase: str
+        :param explanation: str
         :param ukr_translation: str
         :param rus_translation: str
         :return: word object
@@ -41,7 +41,7 @@ class WordService():
             transcription=transcription,
             ukr_translation=ukr_translation,
             rus_translation=rus_translation,
-            example_phrase=example_phrase,
+            explanation=explanation,
             link=link
         )
         DB.session.add(word_object)
@@ -64,7 +64,7 @@ class WordService():
             word_id,
             word=None,
             transcription=None,
-            example_phrase=None,
+            explanation=None,
             link=None,
             ukr_translation=None,
             rus_translation=None
@@ -75,7 +75,7 @@ class WordService():
         :param word_id: int
         :param word: str
         :param transcription: str
-        :param example_phrase: str
+        :param explanation: str
         :param link: str
         :param ukr_translation: str
         :param rus_translation: str
@@ -90,8 +90,8 @@ class WordService():
             word_object.word = word
         if transcription is not None:
             word_object.transcription = transcription
-        if example_phrase is not None:
-            word_object.example_phrase = example_phrase
+        if explanation is not None:
+            word_object.explanation = explanation
         if link is not None:
             word_object.link = link
         if ukr_translation is not None:
@@ -124,7 +124,7 @@ class WordService():
     def filter( # pylint: disable=too-many-arguments
             word=None,
             transcription=None,
-            example_phrase=None,
+            explanation=None,
             link=None,
             ukr_translation=None,
             rus_translation=None
@@ -134,7 +134,7 @@ class WordService():
 
         :param word: str
         :param transcription: str
-        :param example_phrase: str
+        :param explanation: str
         :param link: str
         :param ukr_translation: str
         :param rus_translation: str
@@ -146,8 +146,8 @@ class WordService():
             data['word'] = word
         if transcription is not None:
             data['transcription'] = transcription
-        if example_phrase is not None:
-            data['example_phrase'] = example_phrase
+        if explanation is not None:
+            data['explanation'] = explanation
         if link is not None:
             data['link'] = link
         if ukr_translation is not None:

@@ -32,7 +32,7 @@ def upgrade():
     sa.Column('transcription', sa.String(), nullable=True),
     sa.Column('ukr_translation', sa.String(), nullable=True),
     sa.Column('rus_translation', sa.String(), nullable=True),
-    sa.Column('example_phrase', sa.String(), nullable=True),
+    sa.Column('explanation', sa.String(), nullable=True),
     sa.Column('link', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
