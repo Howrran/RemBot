@@ -2,123 +2,117 @@
 Bot realisation
 """
 
-from uuid import uuid4
-from config import BOT_TOKEN # pylint: disable= no-name-in-module
-from telegram.ext import Updater, CommandHandler # pylint: disable= import-error
-from doc_manager import DocManager # pylint: disable= import-error
+from src.local_settings import BOT_TOKEN  # pylint: disable= no-name-in-module
+from telegram.ext import Updater, CommandHandler  # pylint: disable= import-error
+from src.services.user import UserService
 
-interval = 10 # pylint: disable= invalid-name # interval between the messages in seconds
-words = {} # dictionary where key is a word, value is translation
-           # word: translation
-used_words = [] # list of already used words
-def put(update, context):
-    """Usage: /put value"""
-    # Generate ID and seperate value from command
-    key = str(uuid4())
-    value = update.message.text.partition(' ')[2]
 
-    # Store value
-    context.user_data[key] = value
+def send_word(context):
+    """
+    send message to the user
 
-    update.message.reply_text(key)
+    :param context:
+    :return:
+    """
+    context.bot.send_message(chat_id=context.job.context, text='TA ZA SHO')
 
-def get(update, context):
-    """Usage: /get uuid"""
-    # Seperate ID from command
-    key = update.message.text.partition(' ')[2]
 
-    # Load value
-    try:
-        value = context.user_data[key]
-        update.message.reply_text(value)
+def start_timer(interval, update, context):
+    """
+    Add job_queue that send message to the user
+    job is stored in context.chat_data['job']
 
-    except KeyError:
-        update.message.reply_text('Not found')
+    :param interval: int | interval in sec
+    :param update:
+    :param context:
+    :return:
+    """
+    # if user already has timer
+    if 'job' in context.chat_data:
+        old_job = context.chat_data['job']
+        old_job.schedule_removal()
 
-def update_words_dict(context, update):
-    """TODO make doc"""
-    document_id = update.message.text.split('/')
-    print(document_id)
-    context = DocManager.get_doc_content()
-    dictionary = {}
-    for word in context.split('\n'):
-        if word:
-            dictionary[word.split('-')[0].strip()] = word.split('-')[1].strip()
+    new_job = context.job_queue.run_repeating(send_word, interval, context=update.message.chat_id)
+    context.chat_data['job'] = new_job
 
-    return dictionary
 
-def callback_alarm(context):
-    """TODO make doc"""
-    context.bot.send_message(chat_id=context.job.context, text='Alarm')
+def stop_timer(update, context):
+    """
+    delete job from user chat data
 
-def callback_timer(update, context):
-    """TODO make doc"""
+    :param update:
+    :param context:
+    :return:
+    """
+
+    if 'job' not in context.chat_data:
+        update.message.reply_text('You have no active timer')
+        return
+
+    job = context.chat_data['job']
+    job.schedule_removal()
+    del context.chat_data['job']
+
+    update.message.reply_text('Timer successfully unset!')
+
+
+def start_bot(update, context):
+    """
+    Add user to the database and start timer job for him
+
+    :param update:
+    :param context:
+    :return:
+    """
+
+    username = update.message.from_user.username
+    telegram_id = update.message.from_user.id
+
+    print(username, telegram_id)
+
+    user = UserService.create(username=username, telegram_id=telegram_id)
+
     context.bot.send_message(
         chat_id=update.message.chat_id,
         text='Starting!')
-    context.job_queue.run_repeating(callback_alarm, interval, context=update.message.chat_id)
 
-def stop_timer(context, update):
-    """TODO make doc"""
+    start_timer(user.interval, update, context)
+
+    print(updater.job_queue)
+
+    # context.job_queue.run_repeating(
+    #     callback=send_word,
+    #     interval=user.interval,
+    #     context=update.message.chat_id,
+    #     name=user.telegram_id)
+
+
+def stop_bot(update, context):
+    """
+    Stop all jobs for all users
+
+    :param update:
+    :param context:
+    :return:
+    """
     context.bot.send_message(
         chat_id=update.message.chat_id,
-        text='Stopped!')
+        text='Bot Stopped!')
+
     context.job_queue.stop()
 
+
 def status(context, update):
-    """TODO make doc"""
+    """Not mine Xd not work for now"""
     context.bot.send_message(
         chat_id=update.message.chat_id,
         text='Active!')
 
+
 updater = Updater(BOT_TOKEN, use_context=True)
-updater.dispatcher.add_handler(CommandHandler('start', callback_timer, pass_job_queue=True))
+updater.dispatcher.add_handler(CommandHandler('start', start_bot, pass_job_queue=True))
 updater.dispatcher.add_handler(CommandHandler('stop', stop_timer, pass_job_queue=True))
+updater.dispatcher.add_handler(CommandHandler('stop_bot', stop_bot, pass_job_queue=True))
 updater.dispatcher.add_handler(CommandHandler('status', status, pass_job_queue=True))
 
-words = update_words_dict() # pylint: disable= no-value-for-parameter
-print(words)
 updater.start_polling()
-
-
-
-
-# from telegram.ext import Updater, CommandHandler, MessageHandler,    Filters, InlineQueryHandler
-#
-#
-# def sayhi(bot, job):
-#     job.context.message.reply_text("hi")
-#
-# def time(bot, update,job_queue):
-#     job = job_queue.run_repeating(sayhi, 5, context=update)
-#
-# def main():
-#     updater = Updater(BOT_TOKEN)
-#     dp = updater.dispatcher
-#     dp.add_handler(MessageHandler(Filters.text , time,pass_job_queue=True))
-#
-#
-#     updater.start_polling()
-#     updater.idle()
-#
-# if __name__ == '__main__':
-#     main()
-#
-# bot = telebot.TeleBot(BOT_TOKEN)
-#
-# words = ['one', 'two', 'three']
-# used_words = []
-#
-# def check_time(last_check, interval = 60):
-#     current_time = time.time()
-#
-# @bot.message_handler(commands=['start', 'help'])
-# def send_message(message):
-#     bot.reply_to(message, "Hello there")
-#
-# @bot.message_handler(func=lambda m: True)
-# def echo_all(message):
-#     bot.reply_to(message, message.text)
-#
-# bot.polling()
-#
