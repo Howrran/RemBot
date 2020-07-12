@@ -19,18 +19,21 @@ class NewWordsService:
 
         :param user_telegram_id: str or int idk yet |
         :param url: str | link to google document
-        :return:
+        :return: dict | word_status | or None
         """
         start = time.time()
 
         document_id = NewWordsService.get_doc_id_from_url(url)
+
+        if document_id is None:
+            return None
 
         finish1 = time.time() - start
         print(f'get doc id = {finish1}')
 
         start2 = time.time()
 
-        words = DocManager.get_words_in_dictionary(document_id) # dict of words
+        words = DocManager.get_words_in_dictionary(document_id)  # dict of words
 
         finish2 = time.time() - start2
         print(f'words in dictionary = {finish2}')
@@ -41,7 +44,7 @@ class NewWordsService:
 
         for word, translation in words.items():
 
-            if new_word := WordService.filter(word=word): # if word already in db
+            if new_word := WordService.filter(word=word):  # if word already in db
                 print(f'{word} exist')
                 word_status[word] = 'already in database'
                 # add word to user word list
@@ -55,7 +58,7 @@ class NewWordsService:
             finish4 = time.time() - start4
             print(f'translate = {finish4}')
 
-            if not word_info: # if could not translate
+            if not word_info:  # if could not translate
                 word_status[word] = False
                 continue
 
