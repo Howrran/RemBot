@@ -137,3 +137,7 @@ config.py
 credentials.json
 token.json
 token.pickle
+database.db
+
+# Testing
+oa_testing.py
