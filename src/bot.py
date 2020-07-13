@@ -5,16 +5,57 @@ Bot realisation
 from src.local_settings import BOT_TOKEN  # pylint: disable= no-name-in-module
 from telegram.ext import Updater, CommandHandler  # pylint: disable= import-error
 from src.services.user import UserService
+from src.services.user_word import UserWordService
+from src.services.translate_doc import NewWordsService
+from src.services.words import WordService
+from random import choice
 
+def add_user(update):
+    username = update.message.from_user.username
+    telegram_id = update.message.from_user.id
 
-def send_word(context):
+    print(username, telegram_id)
+
+    user = UserService.create(username=username, telegram_id=telegram_id)
+    return user
+
+def get_user(update):
+    telegram_id = update.message.from_user.id
+    user = UserService.filter(telegram_id=telegram_id)[0]
+    return user
+
+def start_bot(update, context):
     """
-    send message to the user
+    Add user to the database and start timer job for him
 
+    :param update:
     :param context:
     :return:
     """
-    context.bot.send_message(chat_id=context.job.context, text='TA ZA SHO')
+    user = add_user(update)
+    start_timer(user.interval, update, context)
+
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text='Starting!')
+
+
+def stop_bot(update, context):
+    """
+    Stop updater and all jobs
+
+    :param update:
+    :param context:
+    :return:
+    """
+    if update.message.from_user.id != 372481161:
+        return
+
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text='Bot Stopped!')
+
+    context.job_queue.stop()
 
 
 def start_timer(interval, update, context):
@@ -32,6 +73,7 @@ def start_timer(interval, update, context):
         old_job = context.chat_data['job']
         old_job.schedule_removal()
 
+    context.chat_data['user_telegram_id'] = update.message.from_user.id
     new_job = context.job_queue.run_repeating(send_word, interval, context=update.message.chat_id)
     context.chat_data['job'] = new_job
 
@@ -56,53 +98,45 @@ def stop_timer(update, context):
     update.message.reply_text('Timer successfully unset!')
 
 
-def start_bot(update, context):
+def send_word(context):
     """
-    Add user to the database and start timer job for him
+    send message to the user
 
-    :param update:
     :param context:
     :return:
     """
+    user_telegram_id= context.job.context #  get user telegram id
 
-    username = update.message.from_user.username
-    telegram_id = update.message.from_user.id
+    if user := UserService.filter(telegram_id=user_telegram_id):
+        user = user[0]
+    else:
+        return
 
-    print(username, telegram_id)
+    words = UserWordService.filter(user_id=user.id, status=True)
+    user_word = choice(words)
 
-    user = UserService.create(username=username, telegram_id=telegram_id)
+    word = WordService.get_by_id(user_word.word_id)
 
-    context.bot.send_message(
-        chat_id=update.message.chat_id,
-        text='Starting!')
+    print(word)
+    message = f'{word.word} [{word.transcription}] - {word.rus_translation}' \
+              f'\n\n{word.explanation}' \
+              f'\n\n {word.link}'
 
-    start_timer(user.interval, update, context)
+    context.bot.send_message(chat_id=context.job.context, text=message)
 
-    print(updater.job_queue)
-
-    # context.job_queue.run_repeating(
-    #     callback=send_word,
-    #     interval=user.interval,
-    #     context=update.message.chat_id,
-    #     name=user.telegram_id)
-
-
-def stop_bot(update, context):
-    """
-    Stop all jobs for all users
-
-    :param update:
-    :param context:
-    :return:
-    """
-    context.bot.send_message(
-        chat_id=update.message.chat_id,
-        text='Bot Stopped!')
-
-    context.job_queue.stop()
+def add_words(update, context):
+    user = get_user(update)
+    args = update.message.text.split()
+    if len(args) != 2:
+        return
+    link = args[1]
+    print(link)
+    words = NewWordsService.add_user_words_from_doc_russian(user.telegram_id, link)
+    print(words)# todo count
 
 
-def status(context, update):
+
+def status(update, context):
     """Not mine Xd not work for now"""
     context.bot.send_message(
         chat_id=update.message.chat_id,
@@ -114,5 +148,6 @@ updater.dispatcher.add_handler(CommandHandler('start', start_bot, pass_job_queue
 updater.dispatcher.add_handler(CommandHandler('stop', stop_timer, pass_job_queue=True))
 updater.dispatcher.add_handler(CommandHandler('stop_bot', stop_bot, pass_job_queue=True))
 updater.dispatcher.add_handler(CommandHandler('status', status, pass_job_queue=True))
+updater.dispatcher.add_handler(CommandHandler('add_words', add_words, pass_job_queue=True, pass_args=True))
 
 updater.start_polling()
