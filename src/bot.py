@@ -2,15 +2,24 @@
 Bot realisation
 """
 
-from src.local_settings import BOT_TOKEN  # pylint: disable= no-name-in-module
-from telegram.ext import Updater, CommandHandler  # pylint: disable= import-error
-from src.services.user import UserService
-from src.services.user_word import UserWordService
-from src.services.translate_doc import NewWordsService
-from src.services.words import WordService
 from random import choice
 
+from telegram.ext import Updater, CommandHandler  # pylint: disable= import-error
+
+from src.local_settings import BOT_TOKEN  # pylint: disable= no-name-in-module
+from src.services.translate_doc import NewWordsService
+from src.services.user import UserService
+from src.services.user_word import UserWordService
+from src.services.words import WordService
+
+
 def add_user(update):
+    """
+    add new user to db or return if exist
+
+    :param update:
+    :return:
+    """
     username = update.message.from_user.username
     telegram_id = update.message.from_user.id
 
@@ -20,6 +29,12 @@ def add_user(update):
     return user
 
 def get_user(update):
+    """
+    Get user by user`s message
+
+    :param update:
+    :return:
+    """
     telegram_id = update.message.from_user.id
     user = UserService.filter(telegram_id=telegram_id)[0]
     return user
@@ -93,7 +108,7 @@ def stop_timer(update, context):
 
     job = context.chat_data['job']
     job.schedule_removal()
-    del context.chat_data['job']    
+    del context.chat_data['job']
 
     update.message.reply_text('Timer successfully unset!')
 
@@ -105,7 +120,7 @@ def send_word(context):
     :param context:
     :return:
     """
-    user_telegram_id= context.job.context #  get user telegram id
+    user_telegram_id = context.job.context #  get user telegram id
 
     # TODO create function get user word
     if user := UserService.filter(telegram_id=user_telegram_id):
@@ -159,10 +174,36 @@ def status(update, context):
 # TODO add change interval function
 
 updater = Updater(BOT_TOKEN, use_context=True)
-updater.dispatcher.add_handler(CommandHandler('start', start_bot, pass_job_queue=True))
-updater.dispatcher.add_handler(CommandHandler('stop', stop_timer, pass_job_queue=True))
-updater.dispatcher.add_handler(CommandHandler('stop_bot', stop_bot, pass_job_queue=True))
-updater.dispatcher.add_handler(CommandHandler('status', status, pass_job_queue=True))
-updater.dispatcher.add_handler(CommandHandler('add_words', add_words, pass_job_queue=True, pass_args=True))
+updater.dispatcher.add_handler(
+    CommandHandler(
+        'start',
+        start_bot,
+        pass_job_queue=True)
+    )
+updater.dispatcher.add_handler(
+    CommandHandler(
+        'stop',
+        stop_timer,
+        pass_job_queue=True)
+    )
+updater.dispatcher.add_handler(
+    CommandHandler(
+        'stop_bot',
+        stop_bot,
+        pass_job_queue=True)
+    )
+updater.dispatcher.add_handler(
+    CommandHandler(
+        'status',
+        status,
+        pass_job_queue=True)
+    )
+updater.dispatcher.add_handler(
+    CommandHandler(
+        'add_words',
+        add_words,
+        pass_job_queue=True,
+        pass_args=True)
+    )
 
 updater.start_polling()

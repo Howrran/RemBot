@@ -30,6 +30,7 @@ class NewWordsService:
         words = DocManager.get_words_in_dictionary(document_id)  # dict of words
         word_status = {}  # if translator found that word or not
 
+        # TODO create function add many words
         for word, translation in words.items():
 
             if new_word := WordService.filter(word=word):  # if word already in db
