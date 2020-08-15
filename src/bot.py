@@ -93,7 +93,7 @@ def stop_timer(update, context):
 
     job = context.chat_data['job']
     job.schedule_removal()
-    del context.chat_data['job']
+    del context.chat_data['job']    
 
     update.message.reply_text('Timer successfully unset!')
 
@@ -107,11 +107,13 @@ def send_word(context):
     """
     user_telegram_id= context.job.context #  get user telegram id
 
+    # TODO create function get user word
     if user := UserService.filter(telegram_id=user_telegram_id):
         user = user[0]
     else:
         return
 
+    # TODO create function pick word
     words = UserWordService.filter(user_id=user.id, status=True)
     user_word = choice(words)
 
@@ -125,8 +127,20 @@ def send_word(context):
     context.bot.send_message(chat_id=context.job.context, text=message)
 
 def add_words(update, context):
+    """
+    Add new words to DB and link them to user
+
+    args: /add_words link_to_google_doc
+
+    :param update:
+    :param context:
+    :return:
+    """
     user = get_user(update)
     args = update.message.text.split()
+
+    # TODO create validator for link
+
     if len(args) != 2:
         return
     link = args[1]
@@ -137,11 +151,12 @@ def add_words(update, context):
 
 
 def status(update, context):
-    """Not mine Xd not work for now"""
+    """Not mine, not work for now"""
     context.bot.send_message(
         chat_id=update.message.chat_id,
         text='Active!')
 
+# TODO add change interval function
 
 updater = Updater(BOT_TOKEN, use_context=True)
 updater.dispatcher.add_handler(CommandHandler('start', start_bot, pass_job_queue=True))
