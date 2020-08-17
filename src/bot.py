@@ -11,7 +11,7 @@ from src.services.translate_doc import NewWordsService
 from src.services.user import UserService
 from src.services.user_word import UserWordService
 from src.services.words import WordService
-
+from src.utils.google_docs_url_validator import validate_url
 
 def add_user(update):
     """
@@ -154,11 +154,15 @@ def add_words(update, context):
     user = get_user(update)
     args = update.message.text.split()
 
-    # TODO create validator for link
-
     if len(args) != 2:
         return
+
     link = args[1]
+    validated = validate_url(link)
+
+    if not validated:
+        return None
+
     print(link)
     words = NewWordsService.add_user_words_from_doc_russian(user.telegram_id, link)
     print(words)# todo count
