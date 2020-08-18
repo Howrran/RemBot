@@ -165,10 +165,11 @@ def add_words(update, context):
     # TODO create validator for link
 
     if len(args) != 2:
+        update.message.reply_text('Invalid arguments\n/add_words link')
         return
     link = args[1]
     if not Validator.google_doc_validator(link):
-        update.message.reply_text(  'Invalid Link')
+        update.message.reply_text('Invalid Link')
         return
     words = NewWordsService.add_user_words_from_doc_russian(user.telegram_id, link)
     # print(words)# todo count
