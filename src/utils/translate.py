@@ -96,7 +96,7 @@ class RussianTranslation(Translation):
         :return: dict or None
         """
         link = RussianTranslation.URL + word
-        content = requests.get(link).content
+        content = requests.get(link, headers={"User-Agent":"Mozilla/5.0"}).content
 
         soup = BeautifulSoup(content, 'html.parser')
 

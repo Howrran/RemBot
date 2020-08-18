@@ -11,6 +11,7 @@ from src.services.translate_doc import NewWordsService
 from src.services.user import UserService
 from src.services.user_word import UserWordService
 from src.services.words import WordService
+from src.utils.validators import Validator
 
 
 def add_user(update):
@@ -35,6 +36,8 @@ def get_user(update):
     :param update:
     :return:
     """
+    if update.message is None:
+        return
     telegram_id = update.message.from_user.id
     user = UserService.filter(telegram_id=telegram_id)[0]
     return user
@@ -130,16 +133,19 @@ def send_word(context):
 
     # TODO create function pick word
     words = UserWordService.filter(user_id=user.id, status=True)
-    user_word = choice(words)
+    # TODO if no words
+    if words:
+        user_word = choice(words)
 
-    word = WordService.get_by_id(user_word.word_id)
 
-    print(word)
-    message = f'{word.word} [{word.transcription}] - {word.rus_translation}' \
-              f'\n\n{word.explanation}' \
-              f'\n\n {word.link}'
+        word = WordService.get_by_id(user_word.word_id)
 
-    context.bot.send_message(chat_id=context.job.context, text=message)
+        print(word)
+        message = f'{word.word} [{word.transcription}] - {word.rus_translation}' \
+                  f'\n\n{word.explanation}' \
+                  f'\n\n {word.link}'
+
+        context.bot.send_message(chat_id=context.job.context, text=message)
 
 def add_words(update, context):
     """
@@ -152,6 +158,8 @@ def add_words(update, context):
     :return:
     """
     user = get_user(update)
+    if user is None:
+        return
     args = update.message.text.split()
 
     # TODO create validator for link
@@ -171,7 +179,36 @@ def status(update, context):
         chat_id=update.message.chat_id,
         text='Active!')
 
-# TODO add change interval function
+def change_interval(update, context):
+    """
+    Change users word sending interval
+
+    :param update:
+    :param context:
+    :return:
+    """
+    user = get_user(update)
+    if user is None:
+        return
+    args = update.message.text.split()
+
+    if len(args) != 2:
+        return
+
+    new_interval = args[1]
+
+    if not Validator.interval_validator(new_interval):
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text='Invalid Interval\nInterval must be in range 1 < interval < 86 400')
+        return
+
+    user = UserService.update(user_id=user.id, interval = new_interval)
+    if user:
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text=f'Interval changed successfully!\nNew interval is {new_interval} seconds.')
+
 
 updater = Updater(BOT_TOKEN, use_context=True)
 updater.dispatcher.add_handler(
@@ -204,6 +241,12 @@ updater.dispatcher.add_handler(
         add_words,
         pass_job_queue=True,
         pass_args=True)
+    )
+updater.dispatcher.add_handler(
+    CommandHandler(
+        'interval',
+        change_interval,
+        pass_job_queue=True)
     )
 
 updater.start_polling()
