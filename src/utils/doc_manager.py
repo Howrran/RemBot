@@ -7,7 +7,7 @@ import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-
+from googleapiclient.errors import HttpError
 
 class DocManager():
     """
@@ -91,10 +91,13 @@ class DocManager():
         service = build('docs', 'v1', credentials=creds)
 
         # Retrieve the documents contents from the Docs service.
-
-        document = service.documents().get( #pylint: disable= no-member
-            documentId=document_id) \
-            .execute()
+        try:
+            document = service.documents().get( #pylint: disable= no-member
+                documentId=document_id) \
+                .execute()
+        except HttpError:
+            print('google doc error')
+            return None
 
         doc_content = document.get('body').get('content')
         text = DocManager.read_strucutural_elements(doc_content)
@@ -135,6 +138,8 @@ class DocManager():
         document_id = document_id if document_id else DocManager.DOCUMENT_ID
 
         content = DocManager.get_doc_content(document_id)
+        if content is None:
+            return None
         dictionary = {}
 
         for line in content.split('\n'):

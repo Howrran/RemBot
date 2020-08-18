@@ -28,6 +28,8 @@ class NewWordsService:
             return None
 
         words = DocManager.get_words_in_dictionary(document_id)  # dict of words
+        if words is None:
+            return None
         word_status = {}  # if translator found that word or not
 
         # TODO create function add many words
