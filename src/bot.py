@@ -37,7 +37,7 @@ def get_user(update):
     :return:
     """
     if update.message is None:
-        return
+        return None
     telegram_id = update.message.from_user.id
     user = UserService.filter(telegram_id=telegram_id)[0]
     return user
@@ -203,7 +203,7 @@ def change_interval(update, context):
             text='Invalid Interval\nInterval must be in range 1 < interval < 86 400')
         return
 
-    user = UserService.update(user_id=user.id, interval = new_interval)
+    user = UserService.update(user_id=user.id, interval=new_interval)
     if user:
         context.bot.send_message(
             chat_id=update.message.chat_id,

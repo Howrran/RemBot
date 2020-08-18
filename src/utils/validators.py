@@ -1,5 +1,6 @@
 """Module for validators"""
 
+
 class Validator():
     """
     Validators
