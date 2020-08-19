@@ -1,7 +1,7 @@
 """
 Bot realisation
 """
-
+#TODO add language settigns
 from telegram.ext import Updater, CommandHandler  # pylint: disable= import-error
 
 from src.local_settings import BOT_TOKEN  # pylint: disable= no-name-in-module
@@ -160,8 +160,36 @@ def add_words(update, context):
         update.message.reply_text('Invalid Link')
 
     words = NewWordsService.add_user_words_from_doc_russian(user.telegram_id, link)
-    # print(words)# todo count
+    fail_list = [word for word in words if not words[word]] # list of words that was not added to db
+    if fail_list:
+        fail = ', '.join(fail_list)
+        update.message.reply_text('Operation success. But the following words haven`t been added')
+        update.message.reply_text(f'_{fail}_', parse_mode="Markdown")
+    else:
+        update.message.reply_text('Operation success. All words have been added')
+
     return True
+
+def add_single_word(update, context):
+    """
+    Add new word to db and link it to user
+
+    :param update:
+    :param context:
+    :return:
+    """
+    user = get_user(update)
+    if user is None:
+        return None
+
+    word = get_arg(update)
+    if word is None:
+        return None
+
+    new_word = NewWordsService.add_single_word_russian(user.telegram_id, word)
+    message = "Word has been added!" if new_word else "Error, word hasn`t been added"
+    update.message.reply_text(message)
+    return new_word
 
 
 def status(update, context):
@@ -254,6 +282,14 @@ updater.dispatcher.add_handler(
         'interval',
         change_interval,
         pass_job_queue=True)
+)
+
+updater.dispatcher.add_handler(
+    CommandHandler(
+        'add',
+        add_single_word,
+        pass_job_queue=True,
+        pass_args=True)
 )
 
 updater.start_polling()
