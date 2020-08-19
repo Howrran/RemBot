@@ -18,6 +18,7 @@ class NewWordsService:
         """
         Add new words from user`s google doc to the words and user_words tables
 
+        #TODO add many words in one query
         :param user_telegram_id: str or int idk yet |
         :param url: str | link to google document
         :return: dict | word_status | or None

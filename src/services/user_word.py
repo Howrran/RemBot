@@ -173,9 +173,7 @@ class UserWordService():
         """
         words = UserWordService.filter(user_id=user_id, status=True)
 
-        print('words = ', words)
         if not words:
-            print('we are here 1')
             return None
 
         user_word = choice(words)

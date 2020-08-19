@@ -3,6 +3,7 @@ Bot realisation
 """
 #TODO add language settigns
 from telegram.ext import Updater, CommandHandler  # pylint: disable= import-error
+from telegram.ext.dispatcher import run_async
 
 from src.local_settings import BOT_TOKEN  # pylint: disable= no-name-in-module
 from src.services.translate_doc import NewWordsService
@@ -40,7 +41,7 @@ def get_user(update):
     user = UserService.filter(telegram_id=telegram_id)[0]
     return user
 
-
+@run_async
 def start_bot(update, context):
     """
     Add user to the database and start timer job for him
@@ -56,7 +57,7 @@ def start_bot(update, context):
         chat_id=update.message.chat_id,
         text='Starting!')
 
-
+@run_async
 def stop_bot(update, context):
     """
     Stop updater and all jobs
@@ -74,7 +75,7 @@ def stop_bot(update, context):
 
     context.job_queue.stop()
 
-
+@run_async
 def start_timer(interval, update, context):
     """
     Add job_queue that send message to the user
@@ -94,7 +95,7 @@ def start_timer(interval, update, context):
     new_job = context.job_queue.run_repeating(send_word, interval, context=update.message.chat_id)
     context.chat_data['job'] = new_job
 
-
+@run_async
 def stop_timer(update, context):
     """
     delete job from user chat data
@@ -114,7 +115,7 @@ def stop_timer(update, context):
 
     update.message.reply_text('Timer successfully unset!')
 
-
+@run_async
 def send_word(context):
     """
     send message to the user
@@ -137,7 +138,7 @@ def send_word(context):
 
     context.bot.send_message(chat_id=context.job.context, text=message)
 
-
+@run_async
 def add_words(update, context):
     """
     Add new words to DB and link them to user
@@ -159,11 +160,13 @@ def add_words(update, context):
     if not Validator.google_doc_validator(link):
         update.message.reply_text('Invalid Link')
 
+    update.message.reply_text('Adding words...')
     words = NewWordsService.add_user_words_from_doc_russian(user.telegram_id, link)
+
     fail_list = [word for word in words if not words[word]] # list of words that was not added to db
     if fail_list:
         fail = ', '.join(fail_list)
-        update.message.reply_text('Operation success. But the following words haven`t been added')
+        update.message.reply_text('Operation success. But the following words haven`t been added:')
         update.message.reply_text(f'_{fail}_', parse_mode="Markdown")
     else:
         update.message.reply_text('Operation success. All words have been added')
