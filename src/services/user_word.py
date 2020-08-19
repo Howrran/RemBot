@@ -158,6 +158,7 @@ class UserWordService():
         if not user_word:
             return None
 
+        UserWordService.update(user_word.id, status=False) # mark word as used
         word = WordService.get_by_id(user_word.word_id)
 
         return word
