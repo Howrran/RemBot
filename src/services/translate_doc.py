@@ -32,30 +32,41 @@ class NewWordsService:
             return None
         word_status = {}  # if translator found that word or not
 
-        # TODO create function add many words
         for word, translation in words.items():
+            new_word = NewWordsService.add_single_word_russian(
+                user_telegram_id=user_telegram_id,
+                word=word,
+                translation=translation)
 
-            if new_word := WordService.filter(word=word):  # if word already in db
-                print(f'{word} exist')
-                word_status[word] = 'already in database'
-                # add word to user word list
-                UserWordService.add_user_word(user_telegram_id=user_telegram_id, word=new_word[0])
-                continue
-
-            word_info = RussianTranslation.get_word_info(word)
-
-            if not word_info:  # if could not translate
-                word_status[word] = False
-                continue
-
-            if translation:
-                word_info['rus_translation'] = translation
-            word_status[word] = True
-
-            new_word = WordService.create(**word_info)
-            UserWordService.add_user_word(user_telegram_id=user_telegram_id, word=new_word)
+            word_status[word] = bool(new_word)
 
         return word_status
+
+
+    @staticmethod
+    def add_single_word_russian(user_telegram_id, word, translation=None):
+        """
+        Add new word to the words and user_words tables
+
+        :param word:
+        :return:
+        """
+        if new_word := WordService.filter(word=word):  # if word already in db
+            # add word to user word list
+            UserWordService.add_user_word(user_telegram_id=user_telegram_id, word=new_word[0])
+            return new_word[0]
+
+        word_info = RussianTranslation.get_word_info(word)
+
+        if not word_info:  # if could not translate
+            return None
+
+        if translation:
+            word_info['rus_translation'] = translation
+
+        new_word = WordService.create(**word_info)
+        UserWordService.add_user_word(user_telegram_id=user_telegram_id, word=new_word)
+        return new_word
 
     @staticmethod
     def get_doc_id_from_url(url: str):
