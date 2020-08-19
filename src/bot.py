@@ -2,15 +2,12 @@
 Bot realisation
 """
 
-from random import choice
-
 from telegram.ext import Updater, CommandHandler  # pylint: disable= import-error
 
 from src.local_settings import BOT_TOKEN  # pylint: disable= no-name-in-module
 from src.services.translate_doc import NewWordsService
 from src.services.user import UserService
 from src.services.user_word import UserWordService
-from src.services.words import WordService
 from src.utils.validators import Validator
 
 
@@ -29,6 +26,7 @@ def add_user(update):
     user = UserService.create(username=username, telegram_id=telegram_id)
     return user
 
+
 def get_user(update):
     """
     Get user by user`s message
@@ -41,6 +39,7 @@ def get_user(update):
     telegram_id = update.message.from_user.id
     user = UserService.filter(telegram_id=telegram_id)[0]
     return user
+
 
 def start_bot(update, context):
     """
@@ -66,7 +65,7 @@ def stop_bot(update, context):
     :param context:
     :return:
     """
-    if update.message.from_user.id != 372481161:
+    if update.message.from_user.id != 372481161: # admin`s id
         return
 
     context.bot.send_message(
@@ -123,29 +122,21 @@ def send_word(context):
     :param context:
     :return:
     """
-    user_telegram_id = context.job.context #  get user telegram id
+    user_telegram_id = context.job.context  # get user telegram id
+    word = UserWordService.get_user_word(user_telegram_id)
 
-    # TODO create function get user word
-    if user := UserService.filter(telegram_id=user_telegram_id):
-        user = user[0]
-    else:
-        return
-
-    # TODO create function pick word
-    words = UserWordService.filter(user_id=user.id, status=True)
-    # TODO if no words
-    if words:
-        user_word = choice(words)
-
-
-        word = WordService.get_by_id(user_word.word_id)
-
-        print(word)
+    if word:
         message = f'{word.word} [{word.transcription}] - {word.rus_translation}' \
                   f'\n\n{word.explanation}' \
                   f'\n\n {word.link}'
+    else:
+        # todo stop timer
+        # if user has no available words
+        message = 'You have no available words.\nPlease add new words or refresh existing one.\n' \
+                  'As an option you can get receive all available words from database.'
 
-        context.bot.send_message(chat_id=context.job.context, text=message)
+    context.bot.send_message(chat_id=context.job.context, text=message)
+
 
 def add_words(update, context):
     """
@@ -159,21 +150,18 @@ def add_words(update, context):
     """
     user = get_user(update)
     if user is None:
-        return
-    args = update.message.text.split()
+        return None
 
-    # TODO create validator for link
+    link = get_arg(update)
+    if link is None:
+        return None
 
-    if len(args) != 2:
-        update.message.reply_text('Invalid arguments\n/add_words link')
-        return
-    link = args[1]
     if not Validator.google_doc_validator(link):
         update.message.reply_text('Invalid Link')
-        return
+
     words = NewWordsService.add_user_words_from_doc_russian(user.telegram_id, link)
     # print(words)# todo count
-
+    return True
 
 
 def status(update, context):
@@ -181,6 +169,7 @@ def status(update, context):
     context.bot.send_message(
         chat_id=update.message.chat_id,
         text='Active!')
+
 
 def change_interval(update, context):
     """
@@ -192,25 +181,40 @@ def change_interval(update, context):
     """
     user = get_user(update)
     if user is None:
-        return
-    args = update.message.text.split()
-
-    if len(args) != 2:
-        return
-
-    new_interval = args[1]
+        return None
+    new_interval = get_arg(update)
+    if new_interval is None:
+        return None
 
     if not Validator.interval_validator(new_interval):
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text='Invalid Interval\nInterval must be in range 1 < interval < 86 400')
-        return
+        return None
 
     user = UserService.update(user_id=user.id, interval=new_interval)
     if user:
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text=f'Interval changed successfully!\nNew interval is {new_interval} seconds.')
+        return True
+    return None
+
+def get_arg(update):
+    """
+    Get arguments from user`s message
+
+    :param args: /command argument
+    :return:
+    """
+    args = update.message.text.split()
+
+    if len(args) != 2:
+        update.message.reply_text('Invalid arguments\n/command argument')
+        return None
+
+    arg = args[1]
+    return arg
 
 
 updater = Updater(BOT_TOKEN, use_context=True)
@@ -219,37 +223,37 @@ updater.dispatcher.add_handler(
         'start',
         start_bot,
         pass_job_queue=True)
-    )
+)
 updater.dispatcher.add_handler(
     CommandHandler(
         'stop',
         stop_timer,
         pass_job_queue=True)
-    )
+)
 updater.dispatcher.add_handler(
     CommandHandler(
         'stop_bot',
         stop_bot,
         pass_job_queue=True)
-    )
+)
 updater.dispatcher.add_handler(
     CommandHandler(
         'status',
         status,
         pass_job_queue=True)
-    )
+)
 updater.dispatcher.add_handler(
     CommandHandler(
         'add_words',
         add_words,
         pass_job_queue=True,
         pass_args=True)
-    )
+)
 updater.dispatcher.add_handler(
     CommandHandler(
         'interval',
         change_interval,
         pass_job_queue=True)
-    )
+)
 
 updater.start_polling()
