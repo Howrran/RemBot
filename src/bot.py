@@ -8,7 +8,6 @@ from src.local_settings import BOT_TOKEN  # pylint: disable= no-name-in-module
 from src.services.translate_doc import NewWordsService
 from src.services.user import UserService
 from src.services.user_word import UserWordService
-from src.services.words import WordService
 from src.utils.validators import Validator
 
 
@@ -66,7 +65,7 @@ def stop_bot(update, context):
     :param context:
     :return:
     """
-    if update.message.from_user.id != 372481161:
+    if update.message.from_user.id != 372481161: # admin`s id
         return
 
     context.bot.send_message(
@@ -132,6 +131,7 @@ def send_word(context):
                   f'\n\n {word.link}'
     else:
         # todo stop timer
+        # if user has no available words
         message = 'You have no available words.\nPlease add new words or refresh existing one.\n' \
                   'As an option you can get receive all available words from database.'
 
@@ -150,16 +150,18 @@ def add_words(update, context):
     """
     user = get_user(update)
     if user is None:
-        return
+        return None
+
     link = get_arg(update)
     if link is None:
         return None
 
     if not Validator.google_doc_validator(link):
         update.message.reply_text('Invalid Link')
-        return
+
     words = NewWordsService.add_user_words_from_doc_russian(user.telegram_id, link)
     # print(words)# todo count
+    return True
 
 
 def status(update, context):
@@ -195,7 +197,8 @@ def change_interval(update, context):
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text=f'Interval changed successfully!\nNew interval is {new_interval} seconds.')
-
+        return True
+    return None
 
 def get_arg(update):
     """
