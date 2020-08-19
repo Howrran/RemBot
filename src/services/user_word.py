@@ -1,12 +1,14 @@
 """
-User CRUD operations in DB
+UserWord CRUD operations in DB
 """
+from random import choice
+
 from src.models import UserWord
 from src.config import DB
 from src.services.user import UserService
 from src.utils.decorators import transaction_decorator
 from src.utils.errors import NotExist
-
+from src.services.words import WordService
 
 class UserWordService():
     """
@@ -134,4 +136,46 @@ class UserWordService():
 
         user_word = UserWordService.create(user.id, word.id)
 
+        return user_word
+
+    @staticmethod
+    def get_user_word(user_telegram_id):
+        """
+        Return one of user`s unseen word
+
+        :param user_telegram_id:
+        :return:
+        """
+        user = UserService.filter(telegram_id=user_telegram_id)
+
+        if not user:
+            return None
+
+        user = user[0]
+
+        user_word = UserWordService.pick_random_word(user.id)
+
+        if not user_word:
+            return None
+
+        word = WordService.get_by_id(user_word.word_id)
+
+        return word
+
+    @staticmethod
+    def pick_random_word(user_id):
+        """
+        Return user`s random unseen word
+
+        :param user_id:
+        :return:
+        """
+        words = UserWordService.filter(user_id=user_id, status=True)
+
+        print('words = ', words)
+        if not words:
+            print('we are here 1')
+            return None
+
+        user_word = choice(words)
         return user_word
