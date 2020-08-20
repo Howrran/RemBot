@@ -34,6 +34,11 @@ class NewWordsService:
         word_status = {}  # if translator found that word or not
 
         for word, translation in words.items():
+            # pylint: disable=singleton-comparison
+            if words[word] == False: # if that word wasn`t legit in doc file
+                word_status[word] = False
+                continue
+
             new_word = NewWordsService.add_single_word_russian(
                 user_telegram_id=user_telegram_id,
                 word=word,
