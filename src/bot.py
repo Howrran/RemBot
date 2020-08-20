@@ -164,8 +164,9 @@ def add_words(update, context):
     update.message.reply_text('Adding words...')
     words = NewWordsService.add_user_words_from_doc_russian(user.telegram_id, link)
 
-    if words:
-        pass
+    if not words:
+        update.message.reply_text('Something went wrong...')
+        return None
 
     success_list = [word for word in words if words[word]]
     fail_list = [word for word in words if not words[word]] # list of words that was not added to db
