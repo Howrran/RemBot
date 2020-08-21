@@ -135,7 +135,7 @@ def send_word(context):
         # todo stop timer
         # if user has no available words
         message = 'You have no available words.\nPlease add new words or refresh existing one.\n' \
-                  'As an option you can get receive all available words from database.'
+                  'As an option you can get all available words from the database.'
 
     context.bot.send_message(chat_id=context.job.context, text=message)
 

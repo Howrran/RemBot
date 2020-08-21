@@ -4,7 +4,8 @@ import functools
 from sqlalchemy.exc import (
     IntegrityError,
     ProgrammingError,
-    SQLAlchemyError
+    SQLAlchemyError,
+    InvalidRequestError
 )
 
 from src.config import DB  # pylint: disable=no-name-in-module
@@ -41,6 +42,8 @@ def transaction_decorator(func):
         except CustomException as ex:
             print(ex)
         except SQLAlchemyError as ex:
+            print(ex)
+        except InvalidRequestError as ex:
             print(ex)
         DB.session.rollback()
         return None
