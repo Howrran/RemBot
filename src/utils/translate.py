@@ -120,7 +120,7 @@ class RussianTranslation(Translation):
 
         soup = BeautifulSoup(content, 'html.parser')
 
-        if not RussianTranslation.is_exist(soup) or soup:
+        if not RussianTranslation.is_exist(soup):
             data = RussianTranslation.reserve_parse(word)
             return data
 
