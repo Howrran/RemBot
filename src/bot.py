@@ -162,7 +162,7 @@ def add_words(update, context):
     if not Validator.google_doc_validator(link):
         update.message.reply_text('Invalid Link')
 
-    update.message.reply_text('Adding words...\n This procces may take a while')
+    update.message.reply_text('Adding words...\nThis process may take a while')
     words = NewWordsService.add_user_words_from_doc(user.telegram_id, link)
 
     if not words:

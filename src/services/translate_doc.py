@@ -67,16 +67,12 @@ class NewWordsService:
         if not word_info:  # if could not translate
             return None
 
-        ukr_translation = UkrainianTranslation.get_translation(word)
-        if ukr_translation is not None:
+        if translation:
+            word_info['ukr_translation'] = translation
+        else:
+            ukr_translation = UkrainianTranslation.get_translation_lingvo(word)
+            ukr_translation = ukr_translation if ukr_translation else word_info['rus_translation']
             word_info['ukr_translation'] = ukr_translation
-        # if translation:
-        #     word_info['ukr_translation'] = translation
-        #
-        # else:
-        #     ukr_translation = UkrainianTranslation.get_translation(word)
-        #     if ukr_translation is not None:
-        #         word_info['ukr_translation'] = ukr_translation
 
         new_word = WordService.create(**word_info)
         UserWordService.add_user_word(user_telegram_id=user_telegram_id, word=new_word)

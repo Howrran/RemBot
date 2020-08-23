@@ -96,7 +96,7 @@ class RussianTranslation(Translation):
         :return: dict or None
         """
         link = RussianTranslation.URL + word
-        content = requests.get(link, headers={"User-Agent":"Mozilla/5.0"}).content
+        content = requests.get(link, headers={"User-Agent": "Mozilla/5.0"}).content
 
         soup = BeautifulSoup(content, 'html.parser')
 
@@ -122,17 +122,17 @@ class UkrainianTranslation(Translation):
     """
     Translation into Ukrainian by Abby lingvo
     """
-    URL = 'https://www.lingvolive.com/ru-ru/translate/en-uk/'
+    URL_LINGVO = 'https://www.lingvolive.com/ru-ru/translate/en-uk/'
 
     @staticmethod
-    def get_translation(word):
+    def get_translation_lingvo(word):
         """
-        Get Ukrainian Translation from html
+        Get Ukrainian Translation from html on LingvoLive
 
         :param word:
         :return:
         """
-        link = UkrainianTranslation.URL + word
+        link = UkrainianTranslation.URL_LINGVO + word
 
         content = requests.get(link, headers={"User-Agent": "Mozilla/5.0"}).content
         soup = BeautifulSoup(content, 'html.parser')
@@ -140,21 +140,11 @@ class UkrainianTranslation(Translation):
             return None
 
         translation = soup.select('div[class="_1S_20"] > span')
-        ukr_translation = translation[-1].text
+
+        ukr_translation = translation[-2] if translation[-1].text == 'Примеры' else translation[-1]
+        ukr_translation = str(ukr_translation.text)
 
         return ukr_translation
-                # print(soup.find('div', attrs={'class': '_1mexQ Zf_4w _3bSyz'}))
-
-        # get translation
-        # if soup.find('ol', attrs={'class': '_1Mc81 _1TaPP'}):
-        #     ukr_translation = soup.find('ol', attrs={'class': '_1Mc81 _1TaPP'}).li.p.contents
-        #     ukr_translation = Translation.get_text_from_tags(ukr_translation)
-        # else:
-        #     ukr_translation = soup.select('div > p', attrs={'class': '_1mexQ Zf_4w _3bSyz'})[1]
-        #     ukr_translation = Translation.get_text_from_tags(ukr_translation)
-        #
-        # # print(ukr_translation)
-        # return ukr_translation
 
     @staticmethod
     def is_exist(soup):
@@ -165,10 +155,11 @@ class UkrainianTranslation(Translation):
         :return:
         """
         exist = True
-        not_found= soup.find('div', attrs={'class':'cw0oE'}).span.contents[0] # check if word exist
+        not_found = soup.find('div', attrs={'class': 'cw0oE'}).span.contents[
+            0]  # check if word exist
         if not_found == 'Не найдено':
             exist = False
 
         return exist
 
-UkrainianTranslation.get_translation('rgjbrewgbwb')
+# UkrainianTranslation.get_translation_google('section')
