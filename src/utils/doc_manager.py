@@ -95,7 +95,7 @@ class DocManager():
 
         # Retrieve the documents contents from the Docs service.
         try:
-            document = service.documents().get( #pylint: disable= no-member
+            document = service.documents().get(  # pylint: disable= no-member
                 documentId=document_id) \
                 .execute()
         except HttpError:
@@ -108,6 +108,27 @@ class DocManager():
         return text
 
     @staticmethod
+    def is_only_word(line):
+        """
+        Check if only one word in line
+
+        :param line:
+        :return:
+        """
+        is_only_word = True
+
+        # pylint: disable=too-many-boolean-expressions
+        if len(line.split()) > 1 \
+                or len(line.split(',')) > 1 \
+                or len(line.split('.')) > 1 \
+                or len(line.split('\\')) > 1 \
+                or len(line.split('/')) > 1 \
+                or len(line.split('@')) > 1:
+            is_only_word = False
+
+        return is_only_word
+
+    @staticmethod
     def parse_line(line):
         """
         parse line and return dict word - translation(or None if absent)
@@ -116,24 +137,29 @@ class DocManager():
         :return: dict
         """
         data = {}
+
         line = line.split('-')
 
-        if len(line) > 1:
+        is_only_word = DocManager.is_only_word(line[0])
+        if not is_only_word:
+            data[line[0]] = False
+            return data
+
+        if len(line) == 1:
+            if word := line[0]:
+                data[word.strip()] = None
+        elif len(line) == 2:
             translation = line[-1].strip()
             word = ''.join(line[:-1]).strip()
             data[word] = translation
 
-        else:
-            if word := line[0]:
-                data[word] = None
-
         return data
-
 
     @staticmethod
     def get_words_in_dictionary(document_id=None):
         """
         Get content from google document and return a dict{word : translation}
+        or {word: False} if word is not legit
 
         :param document_id: str
         :return: dict
@@ -146,6 +172,6 @@ class DocManager():
         dictionary = {}
 
         for line in content.split('\n'):
-            dictionary.update(DocManager.parse_line(line)) # update dict {word : translation}
+            dictionary.update(DocManager.parse_line(line))  # update dict {word : translation}
 
         return dictionary

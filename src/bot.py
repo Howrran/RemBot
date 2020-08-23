@@ -2,6 +2,8 @@
 Bot realisation
 """
 #TODO add language settigns
+#TODO add custom translate in user_words
+#TODO lowercase words in db
 from telegram.ext import Updater, CommandHandler  # pylint: disable= import-error
 from telegram.ext.dispatcher import run_async
 
@@ -134,7 +136,7 @@ def send_word(context):
         # todo stop timer
         # if user has no available words
         message = 'You have no available words.\nPlease add new words or refresh existing one.\n' \
-                  'As an option you can get receive all available words from database.'
+                  'As an option you can get all available words from the database.'
 
     context.bot.send_message(chat_id=context.job.context, text=message)
 
@@ -163,13 +165,14 @@ def add_words(update, context):
     update.message.reply_text('Adding words...')
     words = NewWordsService.add_user_words_from_doc_russian(user.telegram_id, link)
 
+    if not words:
+        update.message.reply_text('Something went wrong...')
+        return None
+
+    success_list = [word for word in words if words[word]]
     fail_list = [word for word in words if not words[word]] # list of words that was not added to db
-    if fail_list:
-        fail = ', '.join(fail_list)
-        update.message.reply_text('Operation success. But the following words haven`t been added:')
-        update.message.reply_text(f'_{fail}_', parse_mode="Markdown")
-    else:
-        update.message.reply_text('Operation success. All words have been added')
+
+    print_result(update, success_list, fail_list)
 
     return True
 
@@ -200,6 +203,35 @@ def status(update, context):
     context.bot.send_message(
         chat_id=update.message.chat_id,
         text='Active!')
+
+def print_result(update, success_list, fail_list):
+    """
+    Print result of add_words function
+
+    :param update:
+    :param success_list: list of words which were added to db
+    :param fail_list: list of words which were not added to db
+    :return:
+    """
+    fail = '; '.join(fail_list)
+    success = '; '.join(success_list)
+
+    if success_list and fail_list:
+        update.message.reply_text('Operation success. Following words have been added:')
+        update.message.reply_text(f'_{success}_',
+                                  parse_mode="Markdown")
+        update.message.reply_text('But the following words haven`t been added:')
+        update.message.reply_text(f'_{fail}_', parse_mode="Markdown")
+    elif success_list and not fail_list:
+        update.message.reply_text('Operation success. All words have been added')
+        update.message.reply_text(f'_{success}_',
+                                  parse_mode="Markdown")
+    elif not success_list and fail_list:
+        update.message.reply_text('Operation Failed. All words have not been added')
+        update.message.reply_text(f'_{fail}_',
+                                  parse_mode="Markdown")
+    else:
+        update.message.reply_text('Why is it blank?')
 
 
 def change_interval(update, context):
