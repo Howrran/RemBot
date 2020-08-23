@@ -96,7 +96,7 @@ class RussianTranslation(Translation):
         :return: dict or None
         """
         link = RussianTranslation.URL + word
-        content = requests.get(link, headers={"User-Agent":"Mozilla/5.0"}).content
+        content = requests.get(link, headers={"User-Agent": "Mozilla/5.0"}).content
 
         soup = BeautifulSoup(content, 'html.parser')
 
@@ -116,3 +116,50 @@ class RussianTranslation(Translation):
         }
 
         return data
+
+
+class UkrainianTranslation(Translation):
+    """
+    Translation into Ukrainian by Abby lingvo
+    """
+    URL_LINGVO = 'https://www.lingvolive.com/ru-ru/translate/en-uk/'
+
+    @staticmethod
+    def get_translation_lingvo(word):
+        """
+        Get Ukrainian Translation from html on LingvoLive
+
+        :param word:
+        :return:
+        """
+        link = UkrainianTranslation.URL_LINGVO + word
+
+        content = requests.get(link, headers={"User-Agent": "Mozilla/5.0"}).content
+        soup = BeautifulSoup(content, 'html.parser')
+        if not UkrainianTranslation.is_exist(soup):
+            return None
+
+        translation = soup.select('div[class="_1S_20"] > span')
+
+        ukr_translation = translation[-2] if translation[-1].text == 'Примеры' else translation[-1]
+        ukr_translation = str(ukr_translation.text)
+
+        return ukr_translation
+
+    @staticmethod
+    def is_exist(soup):
+        """
+        Check if page for that word exist
+
+        :param soup:
+        :return:
+        """
+        exist = True
+        not_found = soup.find('div', attrs={'class': 'cw0oE'}).span.contents[
+            0]  # check if word exist
+        if not_found == 'Не найдено':
+            exist = False
+
+        return exist
+
+# UkrainianTranslation.get_translation_google('section')

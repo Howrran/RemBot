@@ -41,10 +41,11 @@ def transaction_decorator(func):
             print(ex)
         except CustomException as ex:
             print(ex)
-        except SQLAlchemyError as ex:
-            print(ex)
         except InvalidRequestError as ex:
             print(ex)
+        except SQLAlchemyError as ex:
+            print(ex)
+
         DB.session.rollback()
         return None
     return wrapper

@@ -141,16 +141,17 @@ class DocManager():
         line = line.split('-')
 
         is_only_word = DocManager.is_only_word(line[0])
+        # if there are many words in one line
         if not is_only_word:
             data[line[0]] = False
             return data
 
         if len(line) == 1:
             if word := line[0]:
-                data[word.strip()] = None
+                data[word.lower().strip()] = None
         elif len(line) == 2:
             translation = line[-1].strip()
-            word = ''.join(line[:-1]).strip()
+            word = ''.join(line[:-1]).lower().strip()
             data[word] = translation
 
         return data

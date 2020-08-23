@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 from src.services.user_word import UserWordService
 from src.services.words import WordService
 from src.utils.doc_manager import DocManager
-from src.utils.translate import RussianTranslation
+from src.utils.translate import RussianTranslation, UkrainianTranslation
 
 
 class NewWordsService:
@@ -14,7 +14,7 @@ class NewWordsService:
     """
 
     @staticmethod
-    def add_user_words_from_doc_russian(user_telegram_id, url):
+    def add_user_words_from_doc(user_telegram_id, url):
         """
         Add new words from user`s google doc to the words and user_words tables
 
@@ -39,7 +39,7 @@ class NewWordsService:
                 word_status[word] = False
                 continue
 
-            new_word = NewWordsService.add_single_word_russian(
+            new_word = NewWordsService.add_single_word(
                 user_telegram_id=user_telegram_id,
                 word=word,
                 translation=translation)
@@ -50,7 +50,7 @@ class NewWordsService:
 
 
     @staticmethod
-    def add_single_word_russian(user_telegram_id, word, translation=None):
+    def add_single_word(user_telegram_id, word, translation=None):
         """
         Add new word to the words and user_words tables
 
@@ -68,7 +68,11 @@ class NewWordsService:
             return None
 
         if translation:
-            word_info['rus_translation'] = translation
+            word_info['ukr_translation'] = translation
+        else:
+            ukr_translation = UkrainianTranslation.get_translation_lingvo(word)
+            ukr_translation = ukr_translation if ukr_translation else word_info['rus_translation']
+            word_info['ukr_translation'] = ukr_translation
 
         new_word = WordService.create(**word_info)
         UserWordService.add_user_word(user_telegram_id=user_telegram_id, word=new_word)

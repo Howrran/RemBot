@@ -162,8 +162,8 @@ def add_words(update, context):
     if not Validator.google_doc_validator(link):
         update.message.reply_text('Invalid Link')
 
-    update.message.reply_text('Adding words...')
-    words = NewWordsService.add_user_words_from_doc_russian(user.telegram_id, link)
+    update.message.reply_text('Adding words...\nThis process may take a while')
+    words = NewWordsService.add_user_words_from_doc(user.telegram_id, link)
 
     if not words:
         update.message.reply_text('Something went wrong...')
@@ -192,7 +192,7 @@ def add_single_word(update, context):
     if word is None:
         return None
 
-    new_word = NewWordsService.add_single_word_russian(user.telegram_id, word)
+    new_word = NewWordsService.add_single_word(user.telegram_id, word)
     message = "Word has been added!" if new_word else "Error, word hasn`t been added"
     update.message.reply_text(message)
     return new_word
