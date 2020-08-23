@@ -3,6 +3,7 @@ Bot realisation
 """
 #TODO add language settigns
 #TODO add custom translate in user_words
+#TODO add pick random word from db function
 from telegram.ext import Updater, CommandHandler  # pylint: disable= import-error
 from telegram.ext.dispatcher import run_async
 
@@ -140,7 +141,7 @@ def send_word(context):
     context.bot.send_message(chat_id=context.job.context, text=message)
 
 @run_async
-def add_words(update, context):
+def add_words(update, context):  # pylint: disable=unused-argument
     """
     Add new words to DB and link them to user
 
@@ -175,7 +176,7 @@ def add_words(update, context):
 
     return True
 
-def add_single_word(update, context):
+def add_single_word(update, context): # pylint: disable=unused-argument
     """
     Add new word to db and link it to user
 
@@ -189,6 +190,9 @@ def add_single_word(update, context):
 
     word = get_arg(update)
     if word is None:
+        return None
+
+    if word.startswith('http'):
         return None
 
     new_word = NewWordsService.add_single_word(user.telegram_id, word)

@@ -55,12 +55,28 @@ class Translation():
 
         return explanation
 
+    @staticmethod
+    def get_translation_google(word, language='ukrainian'):
+        """
+        Get Ukrainian Translation from Google
+
+        :param word:
+        :return:
+        """
+        translator = Translator()
+        translation = translator.translate(word, dest=language).text
+        if word == translation:
+            return None
+
+        return translation
+
 
 class RussianTranslation(Translation):
     """
     Translation into Russian by Cambridge dictionary
     """
     URL = 'https://dictionary.cambridge.org/dictionary/english-russian/'
+    RESERVE_URL = 'https://dictionary.cambridge.org/dictionary/english/'
 
     @staticmethod
     def get_translation(soup):
@@ -71,7 +87,10 @@ class RussianTranslation(Translation):
         :return: str
         """
         # get translation from the html and get rid of new line and spaces
-        translation = soup.find(class_='trans').contents[0].strip('\n ')
+        translation = soup.find(class_='trans')
+        if translation is None:
+            return None
+        translation.contents[0].strip('\n ')
         return translation
 
     @staticmethod
@@ -101,12 +120,43 @@ class RussianTranslation(Translation):
 
         soup = BeautifulSoup(content, 'html.parser')
 
-        if not RussianTranslation.is_exist(soup):
-            return None
+        if not RussianTranslation.is_exist(soup) or soup:
+            data = RussianTranslation.reserve_parse(word)
+            return data
 
         translation = RussianTranslation.get_translation(soup)
         explanation = RussianTranslation.get_explanation(soup)
         transcription = RussianTranslation.get_transcription(soup)
+
+        data = {
+            'word': word,
+            'transcription': transcription,
+            'rus_translation': translation,
+            'explanation': explanation,
+            'link': link
+        }
+
+        return data
+
+    @staticmethod
+    def reserve_parse(word):
+        """
+        Get word`s transcription and explanation if has not russian translation on site
+
+        :param word:
+        :return:
+        """
+        link = RussianTranslation.RESERVE_URL + word
+        content = requests.get(link, headers={"User-Agent": "Mozilla/5.0"}).content
+
+        soup = BeautifulSoup(content, 'html.parser')
+
+        if not RussianTranslation.is_exist(soup):
+            return None
+
+        explanation = RussianTranslation.get_explanation(soup)
+        transcription = RussianTranslation.get_transcription(soup)
+        translation = RussianTranslation.get_translation_google(word, language='russian')
 
         data = {
             'word': word,
@@ -142,7 +192,6 @@ class UkrainianTranslation(Translation):
 
         return ukr_trans
 
-
     @staticmethod
     def get_translation_lingva(word):
         """
@@ -165,22 +214,6 @@ class UkrainianTranslation(Translation):
 
         return ukr_translation
 
-
-    @staticmethod
-    def get_translation_google(word):
-        """
-        Get Ukrainian Translation from Google
-
-        :param word:
-        :return:
-        """
-        translator = Translator()
-        translation = translator.translate(word, dest='ukrainian').text
-        if word == translation:
-            return None
-
-        return translation
-
     @staticmethod
     def is_exist(soup):
         """
@@ -190,9 +223,13 @@ class UkrainianTranslation(Translation):
         :return:
         """
         exist = True
-        not_found = soup.find('div', attrs={'class': 'cw0oE'}).span.contents[
-            0]  # check if word exist
-        if not_found == 'Не найдено':
+        content = soup.find('div', attrs={'class': 'cw0oE'})
+        if content is None:
             exist = False
+
+        else:
+            not_found = soup.find('div', attrs={'class': 'cw0oE'}).span.contents[0]  # if word exist
+            if not_found == 'Не найдено':
+                exist = False
 
         return exist
