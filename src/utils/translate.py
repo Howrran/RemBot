@@ -3,6 +3,7 @@ Module for translating words
 """
 import requests
 
+from googletrans import Translator
 from bs4 import BeautifulSoup, Tag
 
 
@@ -125,9 +126,27 @@ class UkrainianTranslation(Translation):
     URL_LINGVO = 'https://www.lingvolive.com/ru-ru/translate/en-uk/'
 
     @staticmethod
-    def get_translation_lingvo(word):
+    def get_translation(word):
         """
-        Get Ukrainian Translation from html on LingvoLive
+        Get Ukrainian Translation
+
+        :param word:
+        :return:
+        """
+        ukr_trans = UkrainianTranslation.get_translation_lingva(word)
+
+        ukr_trans = ukr_trans if ukr_trans else UkrainianTranslation.get_translation_google(word)
+
+        if ukr_trans is None:
+            return None
+
+        return ukr_trans
+
+
+    @staticmethod
+    def get_translation_lingva(word):
+        """
+        Get Ukrainian Translation from LingvaLive
 
         :param word:
         :return:
@@ -146,6 +165,22 @@ class UkrainianTranslation(Translation):
 
         return ukr_translation
 
+
+    @staticmethod
+    def get_translation_google(word):
+        """
+        Get Ukrainian Translation from Google
+
+        :param word:
+        :return:
+        """
+        translator = Translator()
+        translation = translator.translate(word, dest='ukrainian').text
+        if word == translation:
+            return None
+
+        return translation
+
     @staticmethod
     def is_exist(soup):
         """
@@ -161,5 +196,3 @@ class UkrainianTranslation(Translation):
             exist = False
 
         return exist
-
-# UkrainianTranslation.get_translation_google('section')

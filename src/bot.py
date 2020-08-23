@@ -3,7 +3,6 @@ Bot realisation
 """
 #TODO add language settigns
 #TODO add custom translate in user_words
-#TODO lowercase words in db
 from telegram.ext import Updater, CommandHandler  # pylint: disable= import-error
 from telegram.ext.dispatcher import run_async
 

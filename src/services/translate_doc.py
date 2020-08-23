@@ -70,7 +70,7 @@ class NewWordsService:
         if translation:
             word_info['ukr_translation'] = translation
         else:
-            ukr_translation = UkrainianTranslation.get_translation_lingvo(word)
+            ukr_translation = UkrainianTranslation.get_translation(word)
             ukr_translation = ukr_translation if ukr_translation else word_info['rus_translation']
             word_info['ukr_translation'] = ukr_translation
 
