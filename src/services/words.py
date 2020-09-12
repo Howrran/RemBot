@@ -1,8 +1,10 @@
 """
 Words CRUD operations in DB
 """
-from src.models import Word
+from sqlalchemy import func
+
 from src.config import DB
+from src.models import Word
 from src.utils.decorators import transaction_decorator
 from src.utils.errors import NotExist
 
@@ -157,3 +159,13 @@ class WordService():
 
         words = DB.session.query(Word).filter_by(**data).all()
         return words
+
+    @staticmethod
+    def get_random_word():
+        """
+        Get random word from id
+
+        :return:
+        """
+        random_word = DB.session.query(Word).order_by(func.random()).first()
+        return random_word
