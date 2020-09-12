@@ -178,3 +178,24 @@ class UserWordService():
 
         user_word = choice(words)
         return user_word
+
+    @staticmethod
+    def reset_user_words(user_telegram_id):
+        """
+        Change all user word status to unused
+
+        :param user_telegram_id:
+        :return:
+        """
+        user = UserService.filter(telegram_id=user_telegram_id)
+        if user:
+            user = user[0]
+        else:
+            return None
+
+        user_words = UserWordService.filter(user_id=user.id)
+
+        for word in user_words:
+            UserWordService.update(user_word_id=word.id, status=True)
+
+        return True

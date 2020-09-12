@@ -47,3 +47,17 @@ class Validator():
             d_value = splitted_url_path[2]
             return bool(parsed_url.netloc == 'docs.google.com' and d_value == 'd')
         return False
+
+    @staticmethod
+    def language_validator(language):
+        """
+        Validate language input
+
+        :param language:
+        :return:
+        """
+        language_list = ['ukr', 'ukraine', 'ukrainian', 'rus', 'russia', 'russian']
+        if language.lower() not in language_list:
+            return False
+
+        return True
