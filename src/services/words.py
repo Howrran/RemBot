@@ -168,4 +168,5 @@ class WordService():
         :return:
         """
         random_word = DB.session.query(Word).order_by(func.random()).first()
+
         return random_word

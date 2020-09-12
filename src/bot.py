@@ -382,11 +382,18 @@ def get_message(user_telegram_id, word):
     else:
         return None
 
-    if word and user.language == 'ukr':
+    if not word:
+        return None
+
+    if user.language is None:
+        message = 'You haven`t setted up your language.\nPlease enter /language'
+        return message
+
+    if user.language == 'ukr':
         message = f'{word.word} [{word.transcription}] - {word.ukr_translation}' \
                   f'\n\n{word.explanation}' \
                   f'\n\n {word.link}'
-    elif word and user.language == 'rus':
+    elif user.language == 'rus':
         message = f'{word.word} [{word.transcription}] - {word.rus_translation}' \
                   f'\n\n{word.explanation}' \
                   f'\n\n {word.link}'
