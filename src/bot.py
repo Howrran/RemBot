@@ -57,6 +57,24 @@ def start_bot(update, context):
         chat_id=update.message.chat_id,
         text='Starting!')
 
+@run_async
+def all_words(update, context):
+    """
+    Add user to the database and start timer job for him
+
+    :param update:
+    :param context:
+    :return:
+    """
+    user = add_user(update)
+    change_job_to_random_words(user.interval, update, context)
+
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text='Starting with random words!')
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text='To use only your words again stop the bot and use /start')
 
 @run_async
 def stop_bot(update, context):
@@ -97,6 +115,25 @@ def start_timer(interval, update, context):
     new_job = context.job_queue.run_repeating(send_word, interval, context=update.message.chat_id)
     context.chat_data['job'] = new_job
 
+@run_async
+def change_job_to_random_words(interval, update, context):
+    """
+    user will be getting random words from db
+
+    :return:
+    """
+    if 'job' in context.chat_data:
+        old_job = context.chat_data['job']
+        old_job.schedule_removal()
+
+    context.chat_data['user_telegram_id'] = update.message.from_user.id
+    new_job = context.job_queue.run_repeating(
+        send_random_word_from_db,
+        interval,
+        context=update.message.chat_id
+    )
+    context.chat_data['job'] = new_job
+
 
 @run_async
 def stop_timer(update, context):
@@ -133,6 +170,20 @@ def send_word(context):
 
     context.bot.send_message(chat_id=context.job.context, text=message)
 
+@run_async
+def send_random_word_from_db(context):
+    """
+    send message to the user
+
+    :param context:
+    :return:
+    """
+    user_telegram_id = context.job.context  # get user telegram id
+    word = UserWordService.get_random_word_from_db()
+    message = get_message(user_telegram_id, word)
+
+    context.bot.send_message(chat_id=context.job.context, text=message)
+
 
 @run_async
 def add_words(update, context):  # pylint: disable=unused-argument
@@ -164,7 +215,7 @@ def add_words(update, context):  # pylint: disable=unused-argument
         return None
 
     success_list = [word for word in words if words[word]]
-    fail_list = [word for word in words if not words[word]]  # list of words that was not added to db
+    fail_list = [word for word in words if not words[word]]  # words that was not added to db
 
     print_result(update, success_list, fail_list)
 
@@ -283,7 +334,8 @@ def change_language(update, context):
     if not Validator.language_validator(new_language):
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text='Invalid Language\nSupported languages: Ukrainian(/language ukr), Russian(/language rus)')
+            text='Invalid Language\nSupported languages: Ukrainian(/language ukr),'
+                 ' Russian(/language rus)')
         return None
 
     user = UserService.update(user_id=user.id, language=new_language)
@@ -330,11 +382,18 @@ def get_message(user_telegram_id, word):
     else:
         return None
 
-    if word and user.language == 'ukr':
+    if not word:
+        return None
+
+    if user.language is None:
+        message = 'You haven`t setted up your language.\nPlease enter /language'
+        return message
+
+    if user.language == 'ukr':
         message = f'{word.word} [{word.transcription}] - {word.ukr_translation}' \
                   f'\n\n{word.explanation}' \
                   f'\n\n {word.link}'
-    elif word and user.language == 'rus':
+    elif user.language == 'rus':
         message = f'{word.word} [{word.transcription}] - {word.rus_translation}' \
                   f'\n\n{word.explanation}' \
                   f'\n\n {word.link}'
@@ -342,7 +401,8 @@ def get_message(user_telegram_id, word):
         # todo stop timer
         # if user has no available words
         message = 'You have no available words.\nPlease add new words or refresh existing one.\n' \
-                  'As an option you can get all available words from the database.'
+                  'As an option you can get all available words from the database.' \
+                  '/all_words to get random words'
 
     return message
 
@@ -369,6 +429,12 @@ updater.dispatcher.add_handler(
     CommandHandler(
         'start',
         start_bot,
+        pass_job_queue=True)
+)
+updater.dispatcher.add_handler(
+    CommandHandler(
+        'all_words',
+        all_words,
         pass_job_queue=True)
 )
 updater.dispatcher.add_handler(

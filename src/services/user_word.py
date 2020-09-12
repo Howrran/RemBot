@@ -199,3 +199,14 @@ class UserWordService():
             UserWordService.update(user_word_id=word.id, status=True)
 
         return True
+
+    @staticmethod
+    def get_random_word_from_db():
+        """
+        Get random word from db
+
+        :return:
+        """
+        word = WordService.get_random_word()
+
+        return word
