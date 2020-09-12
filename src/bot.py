@@ -306,7 +306,6 @@ def reset_user_words(update, context):
     :return:
     """
     user_telegram_id = update.message.from_user.id
-    print(user_telegram_id)
     response = UserWordService.reset_user_words(user_telegram_id)
 
     if response:
