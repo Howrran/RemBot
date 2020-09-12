@@ -286,7 +286,7 @@ def change_language(update, context):
     if not Validator.language_validator(new_language):
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text='Invalid Language\nSupported languages: Ukrainian(ukr), Russian(rus)')
+            text='Invalid Language\nSupported languages: Ukrainian(/language ukr), Russian(/language rus)')
         return None
 
     user = UserService.update(user_id=user.id, language=new_language)

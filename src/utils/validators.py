@@ -56,7 +56,7 @@ class Validator():
         :param language:
         :return:
         """
-        language_list = ['ukr', 'ukraine', 'ukrainian', 'rus', 'russia', 'russian']
+        language_list = ['ukr', 'rus']
         if language.lower() not in language_list:
             return False
 
