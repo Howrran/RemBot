@@ -21,6 +21,7 @@ class User(DB.BASE_MODEL):  # pylint: disable= too-few-public-methods
     username = Column(String)
     telegram_id = Column(Integer, unique=True)
     interval = Column(Integer, default=5)
+    language = Column(String, default='ukr')
 
     user_word = relationship("UserWord", backref='user')
 

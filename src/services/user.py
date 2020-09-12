@@ -14,13 +14,15 @@ class UserService():
 
     @staticmethod
     @transaction_decorator
-    def create(username, telegram_id, interval=DEFAULT_INTERVAL):
+    def create(username, telegram_id, interval=DEFAULT_INTERVAL, language='ukr'):
         """
         Create new user or return user object if already exists
 
         :param username: str
         :param telegram_id: int
         :param interval: int
+        :param language: str
+
         :return: user object
         """
         user = UserService.filter(telegram_id=telegram_id)
@@ -28,7 +30,12 @@ class UserService():
         if user:
             return user[0]
 
-        user = User(username=username, telegram_id=telegram_id, interval=interval)
+        user = User(
+            username=username,
+            telegram_id=telegram_id,
+            interval=interval,
+            language=language)
+
         DB.session.add(user)
         return user
 
@@ -45,7 +52,7 @@ class UserService():
 
     @staticmethod
     @transaction_decorator
-    def update(user_id, username=None, telegram_id=None, interval=None):
+    def update(user_id, username=None, telegram_id=None, interval=None, language=None):
         """
         Update user info in database
 
@@ -66,6 +73,8 @@ class UserService():
             user.telegram_id = telegram_id
         if interval is not None:
             user.interval = interval
+        if language is not None:
+            user.language = language
 
         DB.session.merge(user)
 
@@ -89,7 +98,7 @@ class UserService():
         return True
 
     @staticmethod
-    def filter(username=None, telegram_id=None, interval=None):
+    def filter(username=None, telegram_id=None, interval=None, language=None):
         """
         Get list of user objects by parameters
 
@@ -106,6 +115,8 @@ class UserService():
             data['telegram_id'] = telegram_id
         if interval is not None:
             data['interval'] = interval
+        if language is not None:
+            data['language'] = language
 
         users = DB.session.query(User).filter_by(**data).all()
         return users
