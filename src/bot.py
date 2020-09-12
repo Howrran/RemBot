@@ -1,9 +1,6 @@
 """
 Bot realisation
 """
-#TODO add language settigns
-#TODO add custom translate in user_words
-#TODO add pick random word from db function
 from telegram.ext import Updater, CommandHandler  # pylint: disable= import-error
 from telegram.ext.dispatcher import run_async
 
@@ -43,6 +40,7 @@ def get_user(update):
     user = UserService.filter(telegram_id=telegram_id)[0]
     return user
 
+
 @run_async
 def start_bot(update, context):
     """
@@ -59,6 +57,7 @@ def start_bot(update, context):
         chat_id=update.message.chat_id,
         text='Starting!')
 
+
 @run_async
 def stop_bot(update, context):
     """
@@ -68,7 +67,7 @@ def stop_bot(update, context):
     :param context:
     :return:
     """
-    if update.message.from_user.id != 372481161: # admin`s id
+    if update.message.from_user.id != 372481161:  # admin`s id
         return
 
     context.bot.send_message(
@@ -76,6 +75,7 @@ def stop_bot(update, context):
         text='Bot Stopped!')
 
     context.job_queue.stop()
+
 
 @run_async
 def start_timer(interval, update, context):
@@ -97,6 +97,7 @@ def start_timer(interval, update, context):
     new_job = context.job_queue.run_repeating(send_word, interval, context=update.message.chat_id)
     context.chat_data['job'] = new_job
 
+
 @run_async
 def stop_timer(update, context):
     """
@@ -117,6 +118,7 @@ def stop_timer(update, context):
 
     update.message.reply_text('Timer successfully unset!')
 
+
 @run_async
 def send_word(context):
     """
@@ -127,18 +129,10 @@ def send_word(context):
     """
     user_telegram_id = context.job.context  # get user telegram id
     word = UserWordService.get_user_word(user_telegram_id)
-
-    if word:
-        message = f'{word.word} [{word.transcription}] - {word.rus_translation}' \
-                  f'\n\n{word.explanation}' \
-                  f'\n\n {word.link}'
-    else:
-        # todo stop timer
-        # if user has no available words
-        message = 'You have no available words.\nPlease add new words or refresh existing one.\n' \
-                  'As an option you can get all available words from the database.'
+    message = get_message(user_telegram_id, word)
 
     context.bot.send_message(chat_id=context.job.context, text=message)
+
 
 @run_async
 def add_words(update, context):  # pylint: disable=unused-argument
@@ -170,13 +164,14 @@ def add_words(update, context):  # pylint: disable=unused-argument
         return None
 
     success_list = [word for word in words if words[word]]
-    fail_list = [word for word in words if not words[word]] # list of words that was not added to db
+    fail_list = [word for word in words if not words[word]]  # list of words that was not added to db
 
     print_result(update, success_list, fail_list)
 
     return True
 
-def add_single_word(update, context): # pylint: disable=unused-argument
+
+def add_single_word(update, context):  # pylint: disable=unused-argument
     """
     Add new word to db and link it to user
 
@@ -206,6 +201,7 @@ def status(update, context):
     context.bot.send_message(
         chat_id=update.message.chat_id,
         text='Active!')
+
 
 def print_result(update, success_list, fail_list):
     """
@@ -266,6 +262,91 @@ def change_interval(update, context):
         return True
     return None
 
+
+def change_language(update, context):
+    """
+    Change users language
+
+    :param update:
+    :param context:
+    :return:
+    """
+    user = get_user(update)
+    if user is None:
+        return None
+
+    new_language = get_arg(update)
+
+    if new_language is None:
+        return None
+
+    if not Validator.language_validator(new_language):
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text='Invalid Language\nSupported languages: Ukrainian(/language ukr), Russian(/language rus)')
+        return None
+
+    user = UserService.update(user_id=user.id, language=new_language)
+    if user:
+        context.bot.send_message(
+            chat_id=update.message.chat_id,
+            text=f'Language changed successfully!\nNew Language is {new_language}.')
+        return True
+    return None
+
+def reset_user_words(update, context):
+    """
+    Change all user word status to unused
+
+    :param update:
+    :param context:
+    :return:
+    """
+    user_telegram_id = update.message.from_user.id
+    response = UserWordService.reset_user_words(user_telegram_id)
+
+    if response:
+        message = 'All words successfully reset!'
+    else:
+        message = 'Something went wrong'
+
+    context.bot.send_message(
+        chat_id=update.message.chat_id,
+        text=message)
+
+
+def get_message(user_telegram_id, word):
+    """
+    get message for send word
+    depends on user language
+
+    :param user_telegram_id:
+    :param word:
+    :return:
+    """
+    user = UserService.filter(telegram_id=user_telegram_id)
+    if user:
+        user = user[0]
+    else:
+        return None
+
+    if word and user.language == 'ukr':
+        message = f'{word.word} [{word.transcription}] - {word.ukr_translation}' \
+                  f'\n\n{word.explanation}' \
+                  f'\n\n {word.link}'
+    elif word and user.language == 'rus':
+        message = f'{word.word} [{word.transcription}] - {word.rus_translation}' \
+                  f'\n\n{word.explanation}' \
+                  f'\n\n {word.link}'
+    else:
+        # todo stop timer
+        # if user has no available words
+        message = 'You have no available words.\nPlease add new words or refresh existing one.\n' \
+                  'As an option you can get all available words from the database.'
+
+    return message
+
+
 def get_arg(update):
     """
     Get arguments from user`s message
@@ -321,7 +402,18 @@ updater.dispatcher.add_handler(
         change_interval,
         pass_job_queue=True)
 )
-
+updater.dispatcher.add_handler(
+    CommandHandler(
+        'language',
+        change_language,
+        pass_job_queue=True)
+)
+updater.dispatcher.add_handler(
+    CommandHandler(
+        'reset',
+        reset_user_words,
+        pass_job_queue=True)
+)
 updater.dispatcher.add_handler(
     CommandHandler(
         'add',
