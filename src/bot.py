@@ -331,6 +331,8 @@ def change_language(update, context):
     if new_language is None:
         return None
 
+    new_language = new_language.lower()
+
     if not Validator.language_validator(new_language):
         context.bot.send_message(
             chat_id=update.message.chat_id,
